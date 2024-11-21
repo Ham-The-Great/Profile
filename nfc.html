@@ -60,7 +60,7 @@
         var abortController = new AbortController();
         //const audio = new Audio('nofi.mp3'); // URL for the beep sound
         const onboard = new Audio('onboard.mp3');
-        const off= new Audio('off.mp3');
+        const offboard = new Audio('Off.mp3');
         utf8decoder = new TextDecoder('utf8');
         var readCounts = {};
         var map, marker;
@@ -131,7 +131,7 @@
                 if (readCount % 2 === 0) {
                     maskElement.classList.add('red-mask');
                     maskElement.innerHTML = '🚫 Off the bus';
-                    off.play();
+                    offboard.play();
                 } else {
                     maskElement.classList.add('green-mask');
                     maskElement.innerHTML = '✅ Successful';
