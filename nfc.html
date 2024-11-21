@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body, html {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        #map {
+            height: 50vh;
+            width: 100%;
+            margin-bottom: 1vh;
+            position: relative;
+        }
+        button {
+            height: 5vh;
+            margin: 1vh;
+        }
+        .ndfmessage:even {
+            background-color: #808080;
+        }
+        .ndfmessage {
+            border: 1px solid black;
+            font-size: 14pt;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .recordType {
+            font-weight:bold;
+        }
+        .ndefdata {
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .mask {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3em;
+            color: white;
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        .green-mask {
+            background-color: green;
+        }
+        .red-mask {
+            background-color: red;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet/dist/leaflet.css" />
+    <script>
+        var reader;
+        var abortController = new AbortController();
+        const audio = new Audio('nofi.mp3'); // URL for the beep sound
+        utf8decoder = new TextDecoder('utf8');
+        var readCounts = {};
+        var map, marker;
+        var markers = []; // Array to store all markers
+
+        function bufferToString(b) {
+            var Int8Buffer = new Uint8Array(b);
+            var retVal = '';
+            for (var i = 0; i < Int8Buffer.length; ++i) {
+                retVal += (" " + Int8Buffer[i].toString(16).padStart(2, '0'));
+            }
+            return retVal;
+        }
+
+        function setupMap() {
+            map = L.map('map').setView([22.3080, 113.9185], 14); // Center on Hong Kong International Airport
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+        }
+
+        function updateMapWithGPS() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+
+                    // Create a new marker and add it to the array
+                    marker = L.marker([lat, lon]).addTo(map);
+                    markers.push(marker);
+
+                    map.setView([lat, lon], 14);
+                });
+            } else {
+                alert('Geolocation is not supported by this browser.');
+            }
+        }
+
+        function setup() {
+            if (!('NDEFReader' in window)) {
+                document.getElementById('scanButton').disabled = true;
+                document.getElementById('stopScanButton').disabled = true;
+                document.getElementById('lastError').innerText = "Sorry, this app only works on devices capable of reading NFC"
+            }
+            reader = new NDEFReader();
+
+            reader.onreadingerror = (e) => {
+                console.error(e);
+            }
+
+            reader.onreading = (e) => {
+                audio.play();
+                updateMapWithGPS();
+                var serialNumber = e.serialNumber;
+
+                // Initialize count for serial number if it doesn't exist
+                if (!readCounts[serialNumber]) {
+                    readCounts[serialNumber] = 0;
+                }
+                readCounts[serialNumber]++;
+                var readCount = readCounts[serialNumber];
+
+                var maskElement = document.createElement('div');
+                maskElement.className = 'mask';
+                maskElement.style.opacity = 1;
+
+                if (readCount % 2 === 0) {
+                    maskElement.classList.add('red-mask');
+                    maskElement.innerHTML = '🚫 Off the bus';
+                } else {
+                    maskElement.classList.add('green-mask');
+                    maskElement.innerHTML = '✅ Successful';
+                }
+
+                document.body.appendChild(maskElement);
+                setTimeout(() => {
+                    maskElement.style.opacity = 0;
+                    setTimeout(() => {
+                        document.body.removeChild(maskElement);
+                    }, 500);
+                }, 1000);
+
+                var rootResultElement = document.getElementById("scanResult");
+
+                var showSerialNumberChecked = document.getElementById('showSerialNumber').checked;
+                if (showSerialNumberChecked) {
+                    var serialNumberElement = document.createElement('div');
+                    serialNumberElement.className = 'serialNumber';
+                    var timestamp = new Date().toLocaleString();
+                    serialNumberElement.innerText = `${serialNumber} - ${timestamp}`;
+                    rootResultElement.appendChild(serialNumberElement);
+                }
+
+                for (var i = 0; i < e.message.records.length; ++i) {
+                    var record = e.message.records[i];
+                    var envelopeElement = document.createElement('div')
+                    envelopeElement.className = 'ndfmessage';
+
+                    var typeText = document.createElement('div');
+                    typeText.className = 'recordType';
+                    typeText.innerText = record.recordType;
+
+                    var dataElement = document.createElement('div');
+                    dataElement.className = 'ndefdata';
+                    dataElement.innerText = bufferToString(record.data.buffer);
+                    var dataTextElement = document.createElement('div');
+                    dataTextElement.innerText = utf8decoder.decode(record.data.buffer);
+                    envelopeElement.appendChild(typeText);
+                    envelopeElement.appendChild(dataElement);
+                    envelopeElement.appendChild(dataTextElement);
+                    rootResultElement.appendChild(envelopeElement);
+                }
+            }
+
+            reader.onreadingerror = (e) => {
+                var lastError = document.getElementById('lastError');
+                lastError.innerText = e.toString();
+            }
+        }
+
+        function scanTag() {
+            reader.scan({ signal: abortController.signal })
+                .then(() => { })
+                .catch((e) => {
+                    if (!e) {
+                        return;
+                    }
+                    if (e.isError) {
+                        console.error(e);
+                    } else {
+                        if (e.reasonText) {
+                            console.info(e.reasonText);
+                        }
+                    }
+                })
+            document.getElementById('scanButton').disabled = true;
+            document.getElementById('stopScanButton').disabled = false;
+        }
+
+        function abortScan() {
+            document.getElementById('scanButton').disabled = false;
+            document.getElementById('stopScanButton').disabled = true;
+            abortController.abort({ isError: false, reasonText: "user requested scan termination" });
+        }
+
+        window.onload = () => {
+            setup();
+            setupMap();
+        }
+    </script>
+</head>
+
+<body>
+    <div id="map"></div>
+    <div>
+        <button id="scanButton" onclick="scanTag()">Scan for Tags</button>
+    </div>
+    <div>
+        <button id="stopScanButton" onclick="abortScan()" disabled>Abort Scan</button>
+    </div>
+    <div style="position:relative;">
+        <input type="checkbox" id="showSerialNumber" /> <label for="showSerialNumber">Show Serial Number</label>
+    </div>
+    <div id="scanResult">
+    </div>
+    <div id="lastError">
+    </div>
+</body>
+</html>
