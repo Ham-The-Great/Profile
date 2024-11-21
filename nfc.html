@@ -11,7 +11,7 @@
             width: 100%;
             margin-bottom: 1vh;
             position: relative;
-            z-index:9;
+            z-index: 9;
         }
         button {
             height: 5vh;
@@ -58,7 +58,9 @@
     <script>
         var reader;
         var abortController = new AbortController();
-        const audio = new Audio('nofi.mp3'); // URL for the beep sound
+        //const audio = new Audio('nofi.mp3'); // URL for the beep sound
+        const onboard = new Audio('onboard.mp3');
+        const off= new Audio('off.mp3');
         utf8decoder = new TextDecoder('utf8');
         var readCounts = {};
         var map, marker;
@@ -111,7 +113,7 @@
             }
 
             reader.onreading = (e) => {
-                audio.play();
+                //audio.play();
                 updateMapWithGPS();
                 var serialNumber = e.serialNumber;
 
@@ -129,9 +131,11 @@
                 if (readCount % 2 === 0) {
                     maskElement.classList.add('red-mask');
                     maskElement.innerHTML = '🚫 Off the bus';
+                    off.play();
                 } else {
                     maskElement.classList.add('green-mask');
                     maskElement.innerHTML = '✅ Successful';
+                    onboard.play();
                 }
 
                 document.body.appendChild(maskElement);
