@@ -44,6 +44,10 @@
         tr:nth-child(even) {
             background-color: #f8f9fa;
         }
+           .large-checkbox {
+            width: 1.5rem;
+            height: 1.5rem;
+        }
     </style>
 </head>
 <body>
@@ -146,6 +150,7 @@
 
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
+                checkbox.classList.add('large-checkbox');
                 checkbox.checked = transaction.done;
                 checkbox.addEventListener('change', function () {
                     transaction.done = checkbox.checked;
