@@ -8,7 +8,6 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
     <style>
         body {
             font-size: 16px;
@@ -50,32 +49,25 @@
 <div class="container mt-5">
     <h1 class="text-center mb-4">Credit Card Spending Tracker</h1>
     <div class="mb-4">
-        <h3>Record Spending</h3>
-        <form id="spending-form">
+        <h3>Input Transactions</h3>
+        <form id="transaction-form">
             <div class="form-group">
-                <label for="amount">Amount</label>
-                <input type="number" class="form-control" id="amount" required>
+                <label for="transaction-text">Transactions (one per line)</label>
+                <textarea class="form-control" id="transaction-text" rows="10" required></textarea>
             </div>
-            <div class="form-group">
-                <label for="description">Description</label>
-                <input type="text" class="form-control" id="description" required>
-            </div>
-            <button type="submit" class="btn btn-primary btn-block">Add Spending</button>
+            <button type="submit" class="btn btn-primary btn-block">Add Transactions</button>
         </form>
     </div>
-    <div class="mb-4">
-        <h3>Upload Credit Card Statement</h3>
-        <input type="file" class="form-control-file" id="statement-file">
-        <button class="btn btn-primary btn-block mt-2" id="upload-statement">Upload and Compare</button>
-    </div>
     <div class="mt-4">
-        <h3>Comparison Results</h3>
-        <table class="table table-bordered" id="results-table">
+        <h3>Transaction List</h3>
+        <table class="table table-bordered" id="transactions-table">
             <thead>
             <tr>
+                <th>Post Date</th>
+                <th>Trans Date</th>
                 <th>Description</th>
                 <th>Amount</th>
-                <th>Status</th>
+                <th>Done</th>
             </tr>
             </thead>
             <tbody></tbody>
@@ -84,73 +76,69 @@
 </div>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const form = document.getElementById('spending-form');
-        const statementFile = document.getElementById('statement-file');
-        const resultsTable = document.getElementById('results-table').getElementsByTagName('tbody')[0];
-        
+        const form = document.getElementById('transaction-form');
+        const transactionsTable = document.getElementById('transactions-table').getElementsByTagName('tbody')[0];
+
         form.addEventListener('submit', function (event) {
             event.preventDefault();
-            const amount = document.getElementById('amount').value;
-            const description = document.getElementById('description').value;
-            const spending = {amount: parseFloat(amount), description: description};
-            
-            let spendings = JSON.parse(localStorage.getItem('spendings')) || [];
-            spendings.push(spending);
-            localStorage.setItem('spendings', JSON.stringify(spendings));
-            
+            const transactionText = document.getElementById('transaction-text').value;
+            const transactions = transactionText.split('\n').map(line => parseTransaction(line.trim())).filter(tx => tx);
+
+            let savedTransactions = JSON.parse(localStorage.getItem('transactions')) || [];
+            savedTransactions = savedTransactions.concat(transactions);
+            localStorage.setItem('transactions', JSON.stringify(savedTransactions));
+
+            displayTransactions(savedTransactions);
             form.reset();
         });
-        
-        document.getElementById('upload-statement').addEventListener('click', function () {
-            if (statementFile.files.length === 0) return alert('Please upload a PDF file.');
-            
-            const fileReader = new FileReader();
-            fileReader.onload = function () {
-                const pdfData = fileReader.result;
-                compareTransactions(pdfData);
-            };
-            fileReader.readAsArrayBuffer(statementFile.files[0]);
-        });
-        
-        async function compareTransactions(pdfData) {
-            const pdfDoc = await PDFLib.PDFDocument.load(pdfData);
-            const pages = pdfDoc.getPages();
-            let text = '';
-            
-            for (const page of pages) {
-                text += await page.getTextContent();
-            }
 
-            const transactions = parsePdfTransactions(text);
-            const spendings = JSON.parse(localStorage.getItem('spendings')) || [];
-            resultsTable.innerHTML = '';
-            
-            transactions.forEach(transaction => {
-                const row = resultsTable.insertRow();
-                const cellDescription = row.insertCell(0);
-                const cellAmount = row.insertCell(1);
-                const cellStatus = row.insertCell(2);
-                
+        function parseTransaction(line) {
+            const regex = /^(\d{2}[A-Z]{3}) (\d{2}[A-Z]{3}) (.+?) (\d+\.\d{2})$/;
+            const match = line.match(regex);
+            if (match) {
+                return {
+                    postDate: match[1],
+                    transDate: match[2],
+                    description: match[3],
+                    amount: parseFloat(match[4]),
+                    done: false
+                };
+            }
+            return null;
+        }
+
+        function displayTransactions(transactions) {
+            transactionsTable.innerHTML = '';
+            transactions.forEach((transaction, index) => {
+                const row = transactionsTable.insertRow();
+                const cellPostDate = row.insertCell(0);
+                const cellTransDate = row.insertCell(1);
+                const cellDescription = row.insertCell(2);
+                const cellAmount = row.insertCell(3);
+                const cellDone = row.insertCell(4);
+
+                cellPostDate.textContent = transaction.postDate;
+                cellTransDate.textContent = transaction.transDate;
                 cellDescription.textContent = transaction.description;
                 cellAmount.textContent = transaction.amount.toFixed(2);
-                
-                const match = spendings.find(sp => sp.amount === transaction.amount && sp.description === transaction.description);
-                if (match) {
-                    cellStatus.textContent = 'Match';
-                } else {
-                    cellStatus.textContent = 'Not Found';
-                    row.style.backgroundColor = 'yellow';
-                }
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = transaction.done;
+                checkbox.addEventListener('change', function () {
+                    transaction.done = checkbox.checked;
+                    saveTransactions(transactions);
+                });
+                cellDone.appendChild(checkbox);
             });
         }
 
-        function parsePdfTransactions(text) {
-            // This is a dummy implementation. Replace it with actual parsing logic.
-            return [
-                {amount: 10.00, description: 'Coffee'},
-                {amount: 50.00, description: 'Groceries'}
-            ];
+        function saveTransactions(transactions) {
+            localStorage.setItem('transactions', JSON.stringify(transactions));
         }
+
+        const savedTransactions = JSON.parse(localStorage.getItem('transactions')) || [];
+        displayTransactions(savedTransactions);
     });
 </script>
 </body>
