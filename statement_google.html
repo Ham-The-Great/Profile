@@ -72,6 +72,13 @@
             </tr>
             </thead>
             <tbody></tbody>
+            <tfoot>
+            <tr>
+                <th colspan="3">Grand Total</th>
+                <th id="grand-total">0.00</th>
+                <th></th>
+            </tr>
+            </tfoot>
         </table>
     </div>
     <div class="mt-4">
@@ -89,6 +96,7 @@
         const exportJsonButton = document.getElementById('export-json');
         const importJsonInput = document.getElementById('import-json');
         const clearStorageButton = document.getElementById('clear-storage');
+        const grandTotalElement = document.getElementById('grand-total');
 
         form.addEventListener('submit', function (event) {
             event.preventDefault();
@@ -120,6 +128,8 @@
 
         function displayTransactions(transactions) {
             transactionsTable.innerHTML = '';
+            let grandTotal = 0;
+
             transactions.forEach((transaction, index) => {
                 const row = transactionsTable.insertRow();
                 const cellPostDate = row.insertCell(0);
@@ -132,6 +142,7 @@
                 cellTransDate.textContent = transaction.transDate;
                 cellDescription.textContent = transaction.description;
                 cellAmount.textContent = transaction.amount.toFixed(2);
+                grandTotal += transaction.amount;
 
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
@@ -142,10 +153,13 @@
                 });
                 cellDone.appendChild(checkbox);
             });
+
+            grandTotalElement.textContent = grandTotal.toFixed(2);
         }
 
         function saveTransactions(transactions) {
             localStorage.setItem('transactions', JSON.stringify(transactions));
+            displayTransactions(transactions);
         }
 
         exportExcelButton.addEventListener('click', function () {
