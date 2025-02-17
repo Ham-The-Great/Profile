@@ -114,9 +114,14 @@
         
         async function compareTransactions(pdfData) {
             const pdfDoc = await PDFLib.PDFDocument.load(pdfData);
-            const text = await pdfDoc.getTextContent();
-            const transactions = parsePdfTransactions(text);
+            const pages = pdfDoc.getPages();
+            let text = '';
             
+            for (const page of pages) {
+                text += await page.getTextContent();
+            }
+
+            const transactions = parsePdfTransactions(text);
             const spendings = JSON.parse(localStorage.getItem('spendings')) || [];
             resultsTable.innerHTML = '';
             
