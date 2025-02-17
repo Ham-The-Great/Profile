@@ -8,6 +8,7 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script>
     <style>
         body {
             font-size: 16px;
@@ -73,11 +74,17 @@
             <tbody></tbody>
         </table>
     </div>
+    <div class="mt-4">
+        <button class="btn btn-success btn-block" id="export-excel">Export to Excel</button>
+        <button class="btn btn-danger btn-block mt-2" id="clear-storage">Clear Local Storage</button>
+    </div>
 </div>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const form = document.getElementById('transaction-form');
         const transactionsTable = document.getElementById('transactions-table').getElementsByTagName('tbody')[0];
+        const exportExcelButton = document.getElementById('export-excel');
+        const clearStorageButton = document.getElementById('clear-storage');
 
         form.addEventListener('submit', function (event) {
             event.preventDefault();
@@ -136,6 +143,23 @@
         function saveTransactions(transactions) {
             localStorage.setItem('transactions', JSON.stringify(transactions));
         }
+
+        exportExcelButton.addEventListener('click', function () {
+            const transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+            const ws_data = [['Post Date', 'Trans Date', 'Description', 'Amount', 'Done']];
+            transactions.forEach(transaction => {
+                ws_data.push([transaction.postDate, transaction.transDate, transaction.description, transaction.amount, transaction.done ? 'Yes' : 'No']);
+            });
+            const ws = XLSX.utils.aoa_to_sheet(ws_data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Transactions');
+            XLSX.writeFile(wb, 'transactions.xlsx');
+        });
+
+        clearStorageButton.addEventListener('click', function () {
+            localStorage.removeItem('transactions');
+            displayTransactions([]);
+        });
 
         const savedTransactions = JSON.parse(localStorage.getItem('transactions')) || [];
         displayTransactions(savedTransactions);
