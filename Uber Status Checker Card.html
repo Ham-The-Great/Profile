@@ -4,7 +4,7 @@
 <title>Page Title</title>
 </head>
 <body>
-
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <h1>Uber Ride Checker</h1>
 
 
@@ -13,7 +13,7 @@
   	
     	<div class="card__details__leftText">
         <span class="card__details__leftText--mainTitle">Home➡️Park</span><br/>
-        <span class="card__details__leftText--secondaryTitle">Status: Requested</span>
+        <span class="card__details__leftText--secondaryTitle">Status: On the Way 🚗</span>
         </div>
     
     	<div class="card__details__rightText">
@@ -25,6 +25,11 @@
             
             </div>
         </div>
+    </div>
+    <div class="progressBar__flexBox">
+    	<div class="progressBar__flexBox__rect--done"></div>
+        <div class="progressBar__flexBox__rect--active"></div>
+        <div class="progressBar__flexBox__rect"></div>
     </div>
 </div>
 
@@ -82,8 +87,62 @@ color:white;
 border-radius: 10px;
 font-size: 3vh;
 }
+
+.progressBar__flexBox{
+display:flex;
+width: 100%;
+}
+
+.progressBar__flexBox__rect--active {
+    min-height: 20px;
+    min-width: 250px;
+    background-color: white;
+    background: linear-gradient(to right, #acacad 50%, #ffffff 50%);
+    background-size: 200% 100%;
+    background-position: right bottom;
+    margin-left: 10px;
+    transition: all 2s ease;
+    animation: moveBackground 4s infinite;
+    border-radius: 10px;
+}
+
+.progressBar__flexBox__rect {
+    min-height: 20px;
+    min-width: 250px;
+    background-color: white;
+    background: linear-gradient(to right, #acacad 50%, #ffffff 50%);
+    background-size: 200% 100%;
+    background-position: right bottom;
+    margin-left: 10px;
+    border-radius: 10px;
+}
+
+.progressBar__flexBox__rect--done {
+    min-height: 20px;
+    min-width: 250px;
+    background-color: white;
+    background: linear-gradient(to right, #acacad 100%, #ffffff 0%);
+    background-size: 200% 100%;
+    background-position: right bottom;
+    margin-left: 10px;
+    border-radius: 10px;
+}
+
+
+@keyframes moveBackground {
+    0% {
+        background-position: right bottom;
+    }
+    100% {
+        background-position: left bottom;
+    }
+}
+
+.progressBar__flexBox__rect:hover {
+    animation-play-state: paused;
+}
+
 </style>
 
 </body>
 </html>
-
