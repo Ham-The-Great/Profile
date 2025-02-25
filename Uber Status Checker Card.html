@@ -21,7 +21,7 @@
         	Pax: 5
         	</div>
             <div>
-            <button class="card__details__rightText__cancelBtn">CANCEL</button>
+            <button class="card__details__rightText__cancelBtn" style="display:none;">CANCEL</button>
             
             </div>
         </div>
@@ -31,6 +31,11 @@
         <div class="progressBar__flexBox__rect--active"></div>
         <div class="progressBar__flexBox__rect"></div>
     </div>
+	<div style="height:15%;width:100%;display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+        <button class="actionBtn" style="border: 0px; background-color:red;color:white">Cancel</button>
+        <button class="actionBtn" style="border: 0px; background-color:grey;color:white">More Info</button>
+	</div>
+
 </div>
 
 
@@ -52,7 +57,7 @@ padding:10px;
 display:flex;
 flex-direction:row;
 width:100%;
-height:75%;
+height:60%;
 justify-content:space-between;
 }
 
@@ -102,7 +107,7 @@ width: 100%;
     background-position: right bottom;
     margin-left: 10px;
     transition: all 2s ease;
-    animation: moveBackground 4s infinite;
+    animation: moveBackground 5s infinite;
     border-radius: 10px;
 }
 
@@ -142,6 +147,13 @@ width: 100%;
     animation-play-state: paused;
 }
 
+.actionBtn{
+border-radius: 100px;
+height:150%;
+width:45%;
+margin-top:10px;
+font-size: 1.5em;
+}
 </style>
 
 </body>
