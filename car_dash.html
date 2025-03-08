@@ -4,99 +4,133 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Car HUD</title>
+  <!-- Include UIkit CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.16.24/dist/css/uikit.min.css" />
   <style>
     body {
       background: black;
       color: lime;
-      font-family: Arial, sans-serif;
+      font-family: "Arial", sans-serif;
+      margin: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       height: 100vh;
-      margin: 0;
-      transform: scaleX(-1); /* Flip horizontally for HUD reflection */
+      transform: scaleX(-1); /* Flip for windshield reflection */
+      overflow: hidden;
     }
     #hud {
       text-align: center;
+      width: 100%;
+      padding: 10px 15px;
+      background: rgba(0, 0, 0, 0.7); /* Slight transparency for contrast */
+      box-shadow: 0px 0px 15px lime;
+      border-radius: 10px;
+      position: absolute;
+      top: 10px;
+      z-index: 2;
     }
-    .speed, .gps {
-      font-size: 3rem;
-      margin: 10px;
+    .speed {
+      font-size: 3.5rem;
+      margin: 5px 0;
+      text-shadow: 1px 1px 5px lime;
     }
     #map {
       width: 100%;
-      height: 50vh;
+      height: 80%; /* Adjust map height for improved layout */
+      margin-top: 100px; /* Space below HUD */
+      position: relative;
+      z-index: 1;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    /* Arrow Pin Styling */
+    .custom-arrow {
+      font-size: 1.5rem;
+      color: red;
+      text-shadow: 1px 1px 3px black;
     }
   </style>
+  <!-- Include Leaflet.js -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body>
-  <div id="hud">
-    <div class="speed">Speed: <span id="speed">0</span> km/h</div>
-    <div class="gps">GPS: <span id="location">Searching...</span></div>
-    <div id="map"></div>
+  <!-- HUD Section -->
+  <div id="hud" class="uk-card uk-card-default uk-card-body">
+    <div class="speed">Speed: <span id="speed">0.00</span> km/h</div>
   </div>
+
+  <!-- Map Section -->
+  <div id="map" class="uk-card uk-card-hover"></div>
+
+  <!-- Include UIkit and Leaflet.js -->
+  <script src="https://cdn.jsdelivr.net/npm/uikit@3.16.24/dist/js/uikit.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    // Real-Time Speed Calculation
-    let lastCoords = null;
-    navigator.geolocation.watchPosition(
-      (position) => {
-        const { latitude, longitude, speed } = position.coords;
+    let velocity = 0; // Initial velocity in m/s
+    let lastTimestamp = null;
+    let map, userMarker, heading = 0;
 
-        // If the speed is provided by the device
-        if (speed !== null && !isNaN(speed)) {
-          document.getElementById('speed').textContent = (speed * 3.6).toFixed(2); // Convert m/s to km/h
-        } else {
-          // Calculate speed using distance and time from two points
-          const currentCoords = { lat: latitude, lng: longitude, time: Date.now() };
-          if (lastCoords) {
-            const distance = calculateDistance(
-              lastCoords.lat,
-              lastCoords.lng,
-              currentCoords.lat,
-              currentCoords.lng
-            ); // Distance in km
-            const timeElapsed = (currentCoords.time - lastCoords.time) / (1000 * 60 * 60); // Time in hours
-            const calculatedSpeed = distance / timeElapsed;
-            document.getElementById('speed').textContent = calculatedSpeed.toFixed(2);
-          }
-          lastCoords = currentCoords;
-        }
-        document.getElementById('location').textContent = `${latitude.toFixed(2)}, ${longitude.toFixed(2)}`;
-      },
-      () => {
-        document.getElementById('location').textContent = 'Unable to retrieve location';
-      }
-    );
-
-    function calculateDistance(lat1, lon1, lat2, lon2) {
-      const R = 6371; // Earth's radius in km
-      const dLat = ((lat2 - lat1) * Math.PI) / 180;
-      const dLon = ((lon2 - lon1) * Math.PI) / 180;
-      const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos((lat1 * Math.PI) / 180) *
-          Math.cos((lat2 * Math.PI) / 180) *
-          Math.sin(dLon / 2) *
-          Math.sin(dLon / 2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      return R * c; // Distance in km
-    }
-
-    // Driving View Map using Leaflet.js
-    const script = document.createElement('script');
-    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-    script.onload = () => {
-      const map = L.map('map').setView([51.505, -0.09], 15);
+    // Initialize map
+    function initializeMap() {
+      map = L.map('map').setView([0, 0], 15); // Initial default location
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: 'Map data © <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
       }).addTo(map);
-      navigator.geolocation.watchPosition((pos) => {
-        const { latitude, longitude } = pos.coords;
-        map.setView([latitude, longitude], 15);
+
+      // Add custom marker (arrow) for the user
+      const arrowIcon = L.divIcon({
+        className: 'custom-arrow',
+        html: '▲', // Arrow character
+        iconSize: [20, 20],
+        iconAnchor: [10, 10],
       });
-    };
-    document.head.appendChild(script);
+      userMarker = L.marker([0, 0], { icon: arrowIcon }).addTo(map);
+    }
+
+    // Update user position and direction
+    function updateLocation(position) {
+      const { latitude, longitude, speed } = position.coords;
+
+      // Update the map marker position
+      const latlng = [latitude, longitude];
+      userMarker.setLatLng(latlng);
+      map.setView(latlng, 15);
+
+      // Update marker rotation based on heading
+      userMarker._icon.style.transform = `rotate(${heading}deg)`;
+
+      // Update speed
+      if (speed !== null) {
+        document.getElementById("speed").textContent = (speed * 3.6).toFixed(2); // Convert m/s to km/h
+      }
+    }
+
+    // Device Orientation for Heading
+    if (window.DeviceOrientationEvent) {
+      window.addEventListener('deviceorientation', (event) => {
+        if (event.alpha !== null) {
+          heading = event.alpha; // Alpha gives compass direction
+        }
+      });
+    } else {
+      alert('Device orientation not supported');
+    }
+
+    // Track real-time location
+    if (navigator.geolocation) {
+      navigator.geolocation.watchPosition(
+        updateLocation,
+        () => alert('Unable to retrieve location'),
+        { enableHighAccuracy: true }
+      );
+    } else {
+      alert('Geolocation not supported');
+    }
+
+    // Initialize map when page loads
+    initializeMap();
   </script>
 </body>
 </html>
