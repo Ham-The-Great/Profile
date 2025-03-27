@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Scan Boarding Pass - PDF417</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/zxing/1.0.0/zxing.js"></script> <!-- Include ZXing library -->
+</head>
+<body>
+    <h1>Boarding Pass Scanner</h1>
+    <video id="video" autoplay></video>
+    <button onclick="startScan()">Start Scan</button>
+    <button onclick="stopScan()">Stop Scan</button>
+    <h2>Sequence Numbers:</h2>
+    <ul id="sequenceList"></ul>
+
+    <script>
+        const sequenceNumbers = [];
+        const video = document.getElementById('video');
+        let videoStream = null;
+
+        function startScan() {
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+                .then(stream => {
+                    video.srcObject = stream;
+                    videoStream = stream;
+                    const barcodeReader = new ZXing.BrowserBarcodeReader();
+
+                    barcodeReader.decodeFromVideoDevice(null, video, (result, err) => {
+                        if (result) {
+                            const sequenceNumber = extractSequenceNumber(result.text);
+                            if (sequenceNumber !== null) {
+                                sequenceNumbers.push(sequenceNumber);
+                                updateSequenceList();
+                                stopScan(); // Stop scanning after finding a result
+                            }
+                        }
+                        if (err && !(err instanceof ZXing.NotFoundException)) {
+                            console.error("Error decoding barcode:", err);
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error("Error accessing camera:", error);
+                });
+        }
+
+        function stopScan() {
+            if (videoStream) {
+                const tracks = videoStream.getTracks();
+                tracks.forEach(track => track.stop());
+                videoStream = null;
+            }
+        }
+
+        function extractSequenceNumber(data) {
+            const match = data.match(/\d+$/); // Extracts the last numeric value
+            return match ? parseInt(match[0], 10) : null;
+        }
+
+        function updateSequenceList() {
+            sequenceNumbers.sort((a, b) => a - b); // Sort numbers in ascending order
+            const sequenceList = document.getElementById('sequenceList');
+            sequenceList.innerHTML = ''; // Clear the list
+
+            sequenceNumbers.forEach(number => {
+                const listItem = document.createElement('li');
+                listItem.textContent = number;
+                sequenceList.appendChild(listItem);
+            });
+        }
+    </script>
+</body>
+</html>
