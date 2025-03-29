@@ -44,33 +44,55 @@
         const codeReader = new ZXing.BrowserMultiFormatReader();
         let isScanning = false;
         let sequenceNumbers = [];
+        let lastScanTime = 0;
+        const scanCooldown = 1000; // 1-second cooldown to prevent rapid repeat scans
+
+        // Audio for "doo" sound (replace with your URL)
+        const scanSound = new Audio('success.mp3'); // e.g., 'https://example.com/doo.wav'
 
         // Function to start scanning with the camera
-        async function startScanning() {
+        function startScanning() {
             if (isScanning) return; // Prevent multiple starts
 
             try {
                 isScanning = true;
-                codeReader.decodeFromVideoDevice(null, 'video', (result, error) => {
-                    if (result) {
-                        const barcodeText = result.text;
-                        const sequenceNumber = extractSequenceNumber(barcodeText);
-
-                        if (sequenceNumber && !sequenceNumbers.includes(parseInt(sequenceNumber))) {
-                            sequenceNumbers.push(parseInt(sequenceNumber));
-                            updateSequenceList();
-                        }
-                    }
-                    if (error && !(error instanceof ZXing.NotFoundException)) {
-                        console.error("Scanning error:", error);
-                    }
-                });
+                scanLoop(); // Start the continuous scanning loop
                 console.log("Scanning started...");
             } catch (error) {
                 console.error("Error starting scanner:", error);
                 alert("Failed to access camera. Please ensure permissions are granted.");
                 isScanning = false;
             }
+        }
+
+        // Continuous scanning loop
+        function scanLoop() {
+            if (!isScanning) return;
+
+            codeReader.decodeFromVideoDevice(null, 'video', (result, error) => {
+                if (result) {
+                    const currentTime = Date.now();
+                    if (currentTime - lastScanTime >= scanCooldown) { // Check cooldown
+                        const barcodeText = result.text;
+                        const sequenceNumber = extractSequenceNumber(barcodeText);
+
+                        if (sequenceNumber && !sequenceNumbers.includes(parseInt(sequenceNumber))) {
+                            sequenceNumbers.push(parseInt(sequenceNumber));
+                            updateSequenceList();
+                            playScanFeedback(); // Play sound and vibrate
+                            lastScanTime = currentTime; // Update last scan time
+                        }
+                    }
+                }
+                if (error && !(error instanceof ZXing.NotFoundException)) {
+                    console.error("Scanning error:", error);
+                }
+
+                // Schedule the next scan
+                if (isScanning) {
+                    requestAnimationFrame(scanLoop);
+                }
+            });
         }
 
         // Function to stop scanning
@@ -97,10 +119,7 @@
 
         // Function to update and sort the sequence list
         function updateSequenceList() {
-            // Sort numbers from lowest to highest
             sequenceNumbers.sort((a, b) => a - b);
-
-            // Update the list on the webpage
             const list = document.getElementById('sequenceList');
             list.innerHTML = ""; // Clear existing list
             sequenceNumbers.forEach(num => {
@@ -108,6 +127,19 @@
                 li.textContent = num;
                 list.appendChild(li);
             });
+        }
+
+        // Function to play sound and vibrate
+        function playScanFeedback() {
+            // Play the "doo" sound
+            scanSound.play().catch(error => console.error("Error playing sound:", error));
+
+            // Vibrate the device (if supported)
+            if ("vibrate" in navigator) {
+                navigator.vibrate(200); // Vibrate for 200ms
+            } else {
+                console.log("Vibration not supported on this device.");
+            }
         }
 
         // Stop scanning when the page is closed
