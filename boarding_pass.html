@@ -1,72 +1,119 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Scan Boarding Pass - PDF417</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/zxing/1.0.0/zxing.js"></script> <!-- Include ZXing library -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boarding Pass Sequence Scanner</title>
+    <script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 20px;
+        }
+        #video {
+            border: 1px solid black;
+            max-width: 100%;
+        }
+        #sequenceList {
+            list-style: none;
+            padding: 0;
+        }
+        #sequenceList li {
+            margin: 5px 0;
+        }
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Boarding Pass Scanner</h1>
-    <video id="video" autoplay></video>
-    <button onclick="startScan()">Start Scan</button>
-    <button onclick="stopScan()">Stop Scan</button>
-    <h2>Sequence Numbers:</h2>
+    <h1>Boarding Pass Sequence Scanner</h1>
+    <button onclick="startScanning()">Start Scanning</button>
+    <button onclick="stopScanning()">Stop Scanning</button>
+    <div>
+        <video id="video" width="400" height="300" muted playsinline></video>
+    </div>
+    <h2>Sequence Numbers</h2>
     <ul id="sequenceList"></ul>
 
     <script>
-        const sequenceNumbers = [];
-        const video = document.getElementById('video');
-        let videoStream = null;
+        // Initialize ZXing Barcode Reader
+        const codeReader = new ZXing.BrowserMultiFormatReader();
+        let isScanning = false;
+        let sequenceNumbers = [];
 
-        function startScan() {
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-                .then(stream => {
-                    video.srcObject = stream;
-                    videoStream = stream;
-                    const barcodeReader = new ZXing.BrowserBarcodeReader();
+        // Function to start scanning with the camera
+        async function startScanning() {
+            if (isScanning) return; // Prevent multiple starts
 
-                    barcodeReader.decodeFromVideoDevice(null, video, (result, err) => {
-                        if (result) {
-                            const sequenceNumber = extractSequenceNumber(result.text);
-                            if (sequenceNumber !== null) {
-                                sequenceNumbers.push(sequenceNumber);
-                                updateSequenceList();
-                                stopScan(); // Stop scanning after finding a result
-                            }
+            try {
+                isScanning = true;
+                codeReader.decodeFromVideoDevice(null, 'video', (result, error) => {
+                    if (result) {
+                        const barcodeText = result.text;
+                        const sequenceNumber = extractSequenceNumber(barcodeText);
+
+                        if (sequenceNumber && !sequenceNumbers.includes(parseInt(sequenceNumber))) {
+                            sequenceNumbers.push(parseInt(sequenceNumber));
+                            updateSequenceList();
                         }
-                        if (err && !(err instanceof ZXing.NotFoundException)) {
-                            console.error("Error decoding barcode:", err);
-                        }
-                    });
-                })
-                .catch(error => {
-                    console.error("Error accessing camera:", error);
+                    }
+                    if (error && !(error instanceof ZXing.NotFoundException)) {
+                        console.error("Scanning error:", error);
+                    }
                 });
-        }
-
-        function stopScan() {
-            if (videoStream) {
-                const tracks = videoStream.getTracks();
-                tracks.forEach(track => track.stop());
-                videoStream = null;
+                console.log("Scanning started...");
+            } catch (error) {
+                console.error("Error starting scanner:", error);
+                alert("Failed to access camera. Please ensure permissions are granted.");
+                isScanning = false;
             }
         }
 
-        function extractSequenceNumber(data) {
-            const match = data.match(/\d+$/); // Extracts the last numeric value
-            return match ? parseInt(match[0], 10) : null;
+        // Function to stop scanning
+        function stopScanning() {
+            if (!isScanning) return;
+
+            codeReader.reset();
+            isScanning = false;
+            console.log("Scanning stopped.");
         }
 
-        function updateSequenceList() {
-            sequenceNumbers.sort((a, b) => a - b); // Sort numbers in ascending order
-            const sequenceList = document.getElementById('sequenceList');
-            sequenceList.innerHTML = ''; // Clear the list
+        // Function to extract sequence number from barcode text
+        function extractSequenceNumber(barcodeText) {
+            // Example barcode: "M1SMITH/JOHN E123456 SYDBNEQF 0544 159Y006A0034 00"
+            // Sequence number is typically a 3-5 digit number after the seat (e.g., "0034")
+            const parts = barcodeText.split(/\s+/);
+            for (let part of parts) {
+                if (/^\d{3,5}$/.test(part)) {
+                    return part; // Return the first 3-5 digit number found
+                }
+            }
+            return null;
+        }
 
-            sequenceNumbers.forEach(number => {
-                const listItem = document.createElement('li');
-                listItem.textContent = number;
-                sequenceList.appendChild(listItem);
+        // Function to update and sort the sequence list
+        function updateSequenceList() {
+            // Sort numbers from lowest to highest
+            sequenceNumbers.sort((a, b) => a - b);
+
+            // Update the list on the webpage
+            const list = document.getElementById('sequenceList');
+            list.innerHTML = ""; // Clear existing list
+            sequenceNumbers.forEach(num => {
+                const li = document.createElement("li");
+                li.textContent = num;
+                list.appendChild(li);
             });
         }
+
+        // Stop scanning when the page is closed
+        window.addEventListener('beforeunload', () => {
+            stopScanning();
+        });
     </script>
 </body>
 </html>
