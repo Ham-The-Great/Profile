@@ -1,7 +1,7 @@
 {
     "name": "Timer PWA",
     "short_name": "Timer",
-    "start_url": "/",
+    "start_url": "https://ham-the-great.github.io/Profile/pwa_demo/",
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#ffffff",
