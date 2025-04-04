@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timer PWA</title>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" href="/icon.png">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Timer PWA</h1>
+        
+        <!-- Timer Section -->
+        <div class="section">
+            <h2>Set Timer</h2>
+            <input type="number" id="minutes" min="1" placeholder="Minutes">
+            <button onclick="setTimer()">Start Timer</button>
+            <p id="timerStatus"></p>
+        </div>
+
+        <!-- Wake Lock Section -->
+        <div class="section">
+            <h2>Screen Wake Lock</h2>
+            <button onclick="toggleWakeLock()">Enable Wake Lock</button>
+            <button onclick="releaseWakeLock()">Disable Wake Lock</button>
+            <p id="wakeStatus"></p>
+        </div>
+
+        <!-- Extra PWA Features -->
+        <div class="section">
+            <h2>Extra Features</h2>
+            <button onclick="getGeolocation()">Get Location</button>
+            <button onclick="vibrateDevice()">Vibrate</button>
+            <p id="extraStatus"></p>
+        </div>
+    </div>
+    <script src="app.js"></script>
+    <script src="sw.js"></script>
+</body>
+</html>
