@@ -122,23 +122,20 @@
         }
 
         function getRoute(start, end) {
-            var url = `http://router.project-osrm.org/route/v1/driving/${start[1]},${start[0]};${end[1]},${end[0]}?overview=full&steps=true`;
-            $.getJSON(url)
-                .done(function(data) {
-                    if (data.routes.length > 0) {
-                        var route = data.routes[0];
-                        drawRoute(route.geometry, start, end);
-                        displayRouteInfo(route);
-                    } else {
-                        alert('No route found');
-                    }
-                    $('#loading').hide();
-                })
-                .fail(function(jqXHR, textStatus, errorThrown) {
-                    console.error('Routing error:', textStatus, errorThrown);
-                    alert('Error fetching route: ' + textStatus + ' - ' + errorThrown);
-                    $('#loading').hide();
-                });
+           var url = `https://router.project-osrm.org/route/v1/driving/${start[1]},${start[0]};${end[1]},${end[0]}?overview=full&steps=true`;
+
+var xhr = new XMLHttpRequest();
+xhr.open("GET", url, true);
+xhr.onload = function () {
+  if (xhr.status === 200) {
+    var data = JSON.parse(xhr.responseText);
+    console.log("Route data:", data);
+    // Process your route data here
+  } else {
+    console.error("Request failed with status:", xhr.status);
+  }
+};
+xhr.send();
         }
 
         function drawRoute(geometry, start, end) {
