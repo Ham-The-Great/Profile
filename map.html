@@ -2,17 +2,75 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>OSM Navigation</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
-        body { margin: 0; font-family: Arial, sans-serif; }
-        #map { height: 80vh; width: 100%; }
-        #controls { padding: 10px; text-align: center; }
-        #instructions { padding: 10px; }
-        input { margin: 5px; padding: 5px; width: 200px; }
-        button { padding: 5px 10px; }
-        #loading { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(255,255,255,0.8); padding: 10px; }
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+        #map {
+            height: 60vh;
+            width: 100%;
+        }
+        #controls {
+            padding: 10px;
+            background: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 1000;
+            position: relative;
+        }
+        #instructions {
+            padding: 10px;
+            max-height: 30vh;
+            overflow-y: auto;
+            background: #fff;
+            font-size: 14px;
+        }
+        input, button {
+            font-size: 16px;
+            padding: 8px;
+            margin: 5px;
+            width: calc(100% - 30px);
+            box-sizing: border-box;
+        }
+        button {
+            width: auto;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 8px 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 2000;
+            display: none;
+        }
+        @media (max-width: 600px) {
+            #map {
+                height: 50vh;
+            }
+            #instructions {
+                max-height: 40vh;
+            }
+            input, button {
+                font-size: 14px;
+                padding: 6px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -24,34 +82,59 @@
     </div>
     <div id="map"></div>
     <div id="instructions"></div>
-    <div id="loading" style="display: none;">Loading...</div>
+    <div id="loading">Loading...</div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://unpkg.com/@mapbox/polyline@1.1.1/src/polyline.js"></script>
     <script>
-        var map = L.map('map').setView([51.505, -0.09], 13);
+        // Initialize the map
+        var map = L.map('map').setView([22.303184, 113.938178], 13); // Default to your start location
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        var routeLine;
-        var startMarker;
-        var endMarker;
-        var currentMarker;
+        // Map elements
+        var routeLine, startMarker, endMarker, currentMarker;
+        var selectingStart = false, selectingEnd = false;
 
-        function isCoordinate(str) {
-            var parts = str.split(',');
-            if (parts.length === 2) {
-                var lat = parseFloat(parts[0]);
-                var lon = parseFloat(parts[1]);
-                if (!isNaN(lat) && !isNaN(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
-                    return [lat, lon];
-                }
+        // Handle map click for pinpointing locations
+        map.on('click', function(e) {
+            var latlng = e.latlng;
+            if (selectingStart) {
+                $('#start').val(`${latlng.lat},${latlng.lng}`);
+                if (startMarker) map.removeLayer(startMarker);
+                startMarker = L.marker([latlng.lat, latlng.lng]).addTo(map).bindPopup('Start').openPopup();
+                selectingStart = false;
+                $('#start').css('background-color', '#fff');
+            } else if (selectingEnd) {
+                $('#end').val(`${latlng.lat},${latlng.lng}`);
+                if (endMarker) map.removeLayer(endMarker);
+                endMarker = L.marker([latlng.lat, latlng.lng]).addTo(map).bindPopup('End').openPopup();
+                selectingEnd = false;
+                $('#end').css('background-color', '#fff');
             }
-            return false;
-        }
+        });
 
+        // Toggle pinpoint selection for start
+        $('#start').click(function() {
+            selectingStart = true;
+            selectingEnd = false;
+            $('#start').css('background-color', '#e0f7fa');
+            $('#end').css('background-color', '#fff');
+            alert('Click on the map to select the start point.');
+        });
+
+        // Toggle pinpoint selection for end
+        $('#end').click(function() {
+            selectingEnd = true;
+            selectingStart = false;
+            $('#end').css('background-color', '#e0f7fa');
+            $('#start').css('background-color', '#fff');
+            alert('Click on the map to select the end point.');
+        });
+
+        // Use current location
         $('#use-current').click(function() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(function(position) {
@@ -60,7 +143,7 @@
                     var currentLocation = [lat, lon];
                     if (currentMarker) map.removeLayer(currentMarker);
                     currentMarker = L.marker(currentLocation).addTo(map).bindPopup('You are here').openPopup();
-                    map.setView(currentLocation, 15);
+                    map.setView(currentLocation, 15); // Zoom to current location
                     $.getJSON(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`, function(data) {
                         $('#start').val(data.display_name);
                     }).fail(function() {
@@ -74,94 +157,122 @@
             }
         });
 
+        // Route button handler
         $('#route-btn').click(function() {
             var start = $('#start').val();
             var end = $('#end').val();
             if (!start || !end) {
-                alert('Please enter both start and end');
+                alert('Please enter both start and end locations');
                 return;
             }
             $('#loading').show();
-            var startCoord = isCoordinate(start);
-            if (startCoord) {
-                processEnd(startCoord, end);
-            } else {
-                $.getJSON('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(start), function(data) {
-                    if (data.length > 0) {
-                        startCoord = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-                        processEnd(startCoord, end);
-                    } else {
-                        alert('Start address not found');
-                        $('#loading').hide();
-                    }
-                }).fail(function() {
-                    alert('Error geocoding start address');
+            parseLocation(start, function(startCoord) {
+                if (startCoord) {
+                    parseLocation(end, function(endCoord) {
+                        if (endCoord) {
+                            getRoute(startCoord, endCoord);
+                        } else {
+                            alert('End location not found');
+                            $('#loading').hide();
+                        }
+                    });
+                } else {
+                    alert('Start location not found');
                     $('#loading').hide();
-                });
-            }
+                }
+            });
         });
 
-        function processEnd(startCoord, end) {
-            var endCoord = isCoordinate(end);
-            if (endCoord) {
-                getRoute(startCoord, endCoord);
+        // Parse location input (address or coordinates)
+        function parseLocation(input, callback) {
+            var coord = isCoordinate(input);
+            if (coord) {
+                callback(coord);
             } else {
-                $.getJSON('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(end), function(data) {
+                $.getJSON('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(input), function(data) {
                     if (data.length > 0) {
-                        endCoord = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-                        getRoute(startCoord, endCoord);
+                        callback([parseFloat(data[0].lat), parseFloat(data[0].lon)]);
                     } else {
-                        alert('End address not found');
-                        $('#loading').hide();
+                        callback(null);
                     }
                 }).fail(function() {
-                    alert('Error geocoding end address');
-                    $('#loading').hide();
+                    callback(null);
                 });
             }
         }
 
+        // Check if input is a coordinate
+        function isCoordinate(str) {
+            var parts = str.split(',');
+            if (parts.length === 2) {
+                var lat = parseFloat(parts[0]);
+                var lon = parseFloat(parts[1]);
+                if (!isNaN(lat) && !isNaN(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
+                    return [lat, lon];
+                }
+            }
+            return false;
+        }
+
+        // Fetch and process the route
         function getRoute(start, end) {
-           var url = `https://router.project-osrm.org/route/v1/driving/${start[1]},${start[0]};${end[1]},${end[0]}?overview=full&steps=true`;
-
-var xhr = new XMLHttpRequest();
-xhr.open("GET", url, true);
-xhr.onload = function () {
-  if (xhr.status === 200) {
-    var data = JSON.parse(xhr.responseText);
-    console.log("Route data:", data);
-    // Process your route data here
-  } else {
-    console.error("Request failed with status:", xhr.status);
-  }
-};
-xhr.send();
-        }
-
-        function drawRoute(geometry, start, end) {
-            if (routeLine) map.removeLayer(routeLine);
-            if (startMarker) map.removeLayer(startMarker);
-            if (endMarker) map.removeLayer(endMarker);
-            var coords = polyline.decode(geometry);
-            var latLngs = coords.map(c => [c[0], c[1]]);
-            routeLine = L.polyline(latLngs, {color: 'blue'}).addTo(map);
-            startMarker = L.marker(start).addTo(map).bindPopup('Start');
-            endMarker = L.marker(end).addTo(map).bindPopup('End');
-            map.fitBounds(routeLine.getBounds());
-        }
-
-        function displayRouteInfo(route) {
-            var distance = (route.distance / 1000).toFixed(2); // km
-            var duration = (route.duration / 60).toFixed(2); // minutes
-            var instructions = '<h3>Route Info</h3>';
-            instructions += `<p>Distance: ${distance} km</p>`;
-            instructions += `<p>Duration: ${duration} minutes</p>`;
-            instructions += '<ol>';
-            route.legs[0].steps.forEach(step => {
-                instructions += `<li>${step.maneuver.instruction}</li>`;
+            var url = `https://router.project-osrm.org/route/v1/driving/${start[1]},${start[0]};${end[1]},${end[0]}?overview=full&steps=true`;
+            $.getJSON(url, function(data) {
+                if (data.routes && data.routes.length > 0) {
+                    var route = data.routes[0];
+                    drawRoute(route.geometry, start, end);
+                    displayRouteInfo(route);
+                    map.setView(start, 15); // Zoom to start location
+                } else {
+                    alert('No route found');
+                }
+                $('#loading').hide();
+            }).fail(function(jqXHR, textStatus, errorThrown) {
+                console.error('Routing error:', textStatus, errorThrown);
+                alert('Error fetching route: ' + textStatus);
+                $('#loading').hide();
             });
-            instructions += '</ol>';
-            $('#instructions').html(instructions);
+        }
+
+        // Draw the route and markers
+        function drawRoute(geometry, start, end) {
+            try {
+                // Decode polyline using mapbox polyline
+                var coords = polyline.decode(geometry);
+                var latlngs = coords.map(function(coord) {
+                    return [coord[0], coord[1]]; // [lat, lon]
+                });
+
+                // Remove existing route and markers
+                if (routeLine) map.removeLayer(routeLine);
+                if (startMarker) map.removeLayer(startMarker);
+                if (endMarker) map.removeLayer(endMarker);
+
+                // Add new route and markers
+                routeLine = L.polyline(latlngs, {color: 'blue', weight: 5}).addTo(map);
+                startMarker = L.marker(start).addTo(map).bindPopup('Start').openPopup();
+                endMarker = L.marker(end).addTo(map).bindPopup('End');
+
+                // Fit map to route bounds
+                map.fitBounds(routeLine.getBounds(), {padding: [50, 50]});
+            } catch (e) {
+                console.error('Error drawing route:', e);
+                alert('Failed to draw route on map');
+            }
+        }
+
+        // Display route information
+        function displayRouteInfo(route) {
+            var instructionsHtml = '<h3>Turn-by-Turn Instructions</h3><ul>';
+            route.legs[0].steps.forEach(function(step) {
+                instructionsHtml += `<li>${step.maneuver.instruction} for ${Math.round(step.distance)} meters</li>`;
+            });
+            instructionsHtml += '</ul>';
+            var minutes = Math.round(route.duration / 60);
+            var km = (route.distance / 1000).toFixed(1);
+            instructionsHtml += `<p><strong>Estimated Time:</strong> ${minutes} minutes</p>`;
+            instructionsHtml += `<p><strong>Distance:</strong> ${km} km</p>`;
+            $('#instructions').html(instructionsHtml);
         }
     </script>
 </body>
