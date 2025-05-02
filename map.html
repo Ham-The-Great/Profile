@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OSM Navigation</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        #map {
+            height: 60vh;
+            width: 100%;
+        }
+        #controls {
+            padding: 10px;
+            background: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        #instructions {
+            padding: 10px;
+            max-height: 30vh;
+            overflow-y: auto;
+            background: #fff;
+        }
+        input, button {
+            font-size: 16px;
+            padding: 10px;
+            margin: 5px;
+            width: calc(100% - 30px);
+            box-sizing: border-box;
+        }
+        button {
+            width: auto;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+        }
+        @media (max-width: 600px) {
+            #map {
+                height: 50vh;
+            }
+            #instructions {
+                max-height: 40vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <input type="text" id="start" placeholder="Start address">
+        <button id="use-current">Use Current Location</button>
+        <input type="text" id="end" placeholder="End address">
+        <button id="route-btn">Get Route</button>
+    </div>
+    <div id="map"></div>
+    <div id="instructions"></div>
+    <div id="loading" style="display: none;">Loading...</div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/@mapbox/polyline@1.1.1/src/polyline.js"></script>
+    <script>
+        // Initialize the map
+        var map = L.map('map').setView([51.505, -0.09], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Variables to store map elements
+        var routeLine;
+        var startMarker;
+        var endMarker;
+
+        // Use current location button handler
+        $('#use-current').click(function() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    var lat = position.coords.latitude;
+                    var lon = position.coords.longitude;
+                    $.getJSON(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`, function(data) {
+                        $('#start').val(data.display_name);
+                    });
+                }, function() {
+                    alert('Unable to get location');
+                });
+            } else {
+                alert('Geolocation not supported');
+            }
+        });
+
+        // Route button handler
+        $('#route-btn').click(function() {
+            var start = $('#start').val();
+            var end = $('#end').val();
+            if (!start || !end) {
+                alert('Please enter both start and end addresses');
+                return;
+            }
+            $('#loading').show();
+            // Geocode start address
+            $.getJSON('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(start), function(data) {
+                if (data.length > 0) {
+                    var startCoord = [data[0].lat, data[0].lon];
+                    // Geocode end address
+                    $.getJSON('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(end), function(data2) {
+                        if (data2.length > 0) {
+                            var endCoord = [data2[0].lat, data2[0].lon];
+                            getRoute(startCoord, endCoord);
+                        } else {
+                            alert('End address not found');
+                            $('#loading').hide();
+                        }
+                    });
+                } else {
+                    alert('Start address not found');
+                    $('#loading').hide();
+                }
+            });
+        });
+
+        // Fetch and process the route
+        function getRoute(start, end) {
+            var url = `http://router.project-osrm.org/route/v1/driving/${start[1]},${start[0]};${end[1]},${end[0]}?overview=full&steps=true`;
+            $.getJSON(url, function(data) {
+                if (data.routes.length > 0) {
+                    var route = data.routes[0];
+                    drawRoute(route.geometry, start, end);
+                    displayRouteInfo(route);
+                    $('#loading').hide();
+                } else {
+                    alert('No route found');
+                    $('#loading').hide();
+                }
+            }).fail(function() {
+                alert('Error fetching route');
+                $('#loading').hide();
+            });
+        }
+
+        // Draw the route and markers on the map
+        function drawRoute(geometry, start, end) {
+            var coords = polyline.decode(geometry);
+            var latlngs = coords.map(function(coord) {
+                return [coord[0], coord[1]];
+            });
+            // Remove existing route and markers
+            if (routeLine) map.removeLayer(routeLine);
+            if (startMarker) map.removeLayer(startMarker);
+            if (endMarker) map.removeLayer(endMarker);
+            // Add new route and markers
+            routeLine = L.polyline(latlngs, {color: 'blue'}).addTo(map);
+            startMarker = L.marker(start).addTo(map).bindPopup('Start');
+            endMarker = L.marker(end).addTo(map).bindPopup('End');
+            map.fitBounds(routeLine.getBounds());
+        }
+
+        // Display turn-by-turn instructions and ETA
+        function displayRouteInfo(route) {
+            var instructionsHtml = '<h3>Turn-by-Turn Instructions</h3><ul>';
+            route.legs[0].steps.forEach(function(step) {
+                instructionsHtml += `<li>${step.maneuver.instruction} for ${Math.round(step.distance)} meters</li>`;
+            });
+            instructionsHtml += '</ul>';
+            var minutes = Math.round(route.duration / 60);
+            var km = (route.distance / 1000).toFixed(1);
+            instructionsHtml += `<p><strong>Estimated Time:</strong> ${minutes} minutes</p>`;
+            instructionsHtml += `<p><strong>Distance:</strong> ${km} km</p>`;
+            $('#instructions').html(instructionsHtml);
+        }
+    </script>
+</body>
+</html>
