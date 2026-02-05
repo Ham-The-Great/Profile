@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日本旅行助手</title>
+    <style>
+        :root {
+            --color-background: #FCFCF9;
+            --color-surface: #FFFFFE;
+            --color-text: #13343B;
+            --color-text-secondary: #626C71;
+            --color-primary: #218D8D;
+            --color-primary-hover: #1D7480;
+            --color-border: rgba(94, 82, 64, 0.2);
+            --color-card-border: rgba(94, 82, 64, 0.12);
+            --color-secondary: rgba(94, 82, 64, 0.12);
+            --color-red-500: #C0152F;
+            --color-orange-500: #A84B2F;
+            --space-8: 8px;
+            --space-12: 12px;
+            --space-16: 16px;
+            --space-20: 20px;
+            --space-24: 24px;
+            --radius-base: 8px;
+            --radius-lg: 12px;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --color-background: #1F2121;
+                --color-surface: #262828;
+                --color-text: #F5F5F5;
+                --color-text-secondary: rgba(167, 169, 169, 0.7);
+                --color-primary: #32B8C6;
+                --color-primary-hover: #2DA6B2;
+                --color-border: rgba(119, 124, 124, 0.3);
+                --color-card-border: rgba(119, 124, 124, 0.2);
+                --color-secondary: rgba(119, 124, 124, 0.15);
+                --color-red-500: #FF5459;
+                --color-orange-500: #E66161;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+            background: var(--color-background);
+            color: var(--color-text);
+            padding: var(--space-16);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: var(--space-24);
+            text-align: center;
+            color: var(--color-text);
+        }
+
+        h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: var(--space-12);
+            color: var(--color-text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card {
+            background: var(--color-surface);
+            border: 1px solid var(--color-card-border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-20);
+            margin-bottom: var(--space-16);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .time-display {
+            text-align: center;
+            font-size: 32px;
+            font-weight: 600;
+            color: var(--color-primary);
+            margin: var(--space-12) 0;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .date-display {
+            text-align: center;
+            font-size: 16px;
+            color: var(--color-text-secondary);
+            margin-bottom: var(--space-16);
+        }
+
+        .weather-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: var(--space-12);
+            margin-top: var(--space-12);
+        }
+
+        .weather-item {
+            background: var(--color-secondary);
+            border-radius: var(--radius-base);
+            padding: var(--space-12);
+            text-align: center;
+        }
+
+        .weather-city {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: var(--space-8);
+        }
+
+        .weather-temp {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+
+        .weather-desc {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            margin-top: 4px;
+        }
+
+        .converter-form {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-12);
+        }
+
+        .input-group {
+            display: flex;
+            gap: var(--space-8);
+            align-items: center;
+        }
+
+        .input-group input {
+            flex: 1;
+            padding: var(--space-12);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-base);
+            font-size: 16px;
+            background: var(--color-surface);
+            color: var(--color-text);
+        }
+
+        .input-group input:focus {
+            outline: 2px solid var(--color-primary);
+            border-color: var(--color-primary);
+        }
+
+        .input-group span {
+            font-weight: 600;
+            color: var(--color-text-secondary);
+            min-width: 45px;
+        }
+
+        .phrase-list {
+            list-style: none;
+        }
+
+        .phrase-item {
+            padding: var(--space-12);
+            margin-bottom: var(--space-8);
+            background: var(--color-secondary);
+            border-radius: var(--radius-base);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .phrase-item:hover {
+            background: var(--color-border);
+        }
+
+        .phrase-jp {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .phrase-en {
+            font-size: 13px;
+            color: var(--color-text-secondary);
+        }
+
+        .phrase-zh {
+            font-size: 13px;
+            color: var(--color-text-secondary);
+            margin-top: 2px;
+        }
+
+        .emergency-grid {
+            display: grid;
+            gap: var(--space-12);
+        }
+
+        .emergency-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-12);
+            background: var(--color-secondary);
+            border-radius: var(--radius-base);
+        }
+
+        .emergency-label {
+            font-weight: 600;
+        }
+
+        .emergency-number {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--color-red-500);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .emergency-number a {
+            color: var(--color-red-500);
+            text-decoration: none;
+        }
+
+        .tips-list {
+            list-style: none;
+        }
+
+        .tip-item {
+            padding: var(--space-12);
+            margin-bottom: var(--space-8);
+            background: var(--color-secondary);
+            border-radius: var(--radius-base);
+            font-size: 14px;
+        }
+
+        .tip-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-8) var(--space-16);
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-base);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: var(--space-8);
+        }
+
+        .btn:hover {
+            background: var(--color-primary-hover);
+        }
+
+        .loading {
+            text-align: center;
+            color: var(--color-text-secondary);
+            font-size: 14px;
+            padding: var(--space-12);
+        }
+
+        .exchange-rate {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            text-align: center;
+            margin-top: var(--space-8);
+        }
+
+        .tabs {
+            display: flex;
+            gap: var(--space-8);
+            margin-bottom: var(--space-16);
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: var(--space-8) var(--space-16);
+            background: var(--color-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-base);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            background: var(--color-primary);
+            color: white;
+            border-color: var(--color-primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🇯🇵 日本旅行助手</h1>
+
+        <div class="card">
+            <h2>🕐 日本當地時間</h2>
+            <div class="time-display" id="japanTime">載入中...</div>
+            <div class="date-display" id="japanDate">載入中...</div>
+        </div>
+
+        <div class="card">
+            <h2>🌤️ 主要城市天氣</h2>
+            <div class="weather-grid" id="weatherGrid">
+                <div class="loading">正在取得天氣資訊...</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>💱 貨幣轉換器</h2>
+            <div class="converter-form">
+                <div class="input-group">
+                    <span>HKD</span>
+                    <input type="number" id="hkdInput" placeholder="輸入港幣金額" value="100">
+                    <span>→</span>
+                </div>
+                <div class="input-group">
+                    <span>JPY</span>
+                    <input type="number" id="jpyInput" placeholder="輸入日圓金額" readonly>
+                </div>
+                <div class="exchange-rate" id="exchangeRate">匯率更新中...</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>💬 常用日語短語</h2>
+            <div class="tabs">
+                <div class="tab active" onclick="switchPhraseTab('basic')">基本用語</div>
+                <div class="tab" onclick="switchPhraseTab('restaurant')">餐廳</div>
+                <div class="tab" onclick="switchPhraseTab('shopping')">購物</div>
+                <div class="tab" onclick="switchPhraseTab('direction')">問路</div>
+            </div>
+
+            <div id="basicPhrases" class="tab-content active">
+                <ul class="phrase-list" id="basicList"></ul>
+            </div>
+            <div id="restaurantPhrases" class="tab-content">
+                <ul class="phrase-list" id="restaurantList"></ul>
+            </div>
+            <div id="shoppingPhrases" class="tab-content">
+                <ul class="phrase-list" id="shoppingList"></ul>
+            </div>
+            <div id="directionPhrases" class="tab-content">
+                <ul class="phrase-list" id="directionList"></ul>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🚨 緊急聯絡資訊</h2>
+            <div class="emergency-grid">
+                <div class="emergency-item">
+                    <span class="emergency-label">警察</span>
+                    <span class="emergency-number"><a href="tel:110">110</a></span>
+                </div>
+                <div class="emergency-item">
+                    <span class="emergency-label">火警 / 救護車</span>
+                    <span class="emergency-number"><a href="tel:119">119</a></span>
+                </div>
+                <div class="emergency-item">
+                    <span class="emergency-label">24小時旅客熱線 (JNTO)</span>
+                    <span class="emergency-number"><a href="tel:050-3816-2787">050-3816-2787</a></span>
+                </div>
+            </div>
+            <div style="margin-top: 12px; font-size: 13px; color: var(--color-text-secondary);">
+                <strong>旅客熱線</strong>提供英語、中文、韓語支援，24小時全年無休
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📱 使用說明</h2>
+            <ul class="tips-list">
+                <li class="tip-item">
+                    <div class="tip-title">🌐 網絡功能</div>
+                    在 Canvas 內可能無法連線。請點擊右上角「在新分頁中打開」以使用完整功能
+                </li>
+                <li class="tip-item">
+                    <div class="tip-title">📲 添加到主畫面</div>
+                    在 Safari 中點擊分享按鈕 → 「加入主畫面螢幕」，即可像 App 一樣使用
+                </li>
+                <li class="tip-item">
+                    <div class="tip-title">🔊 語音功能</div>
+                    點擊日語短語可聽取發音（需在新分頁中使用）
+                </li>
+                <li class="tip-item">
+                    <div class="tip-title">📵 離線功能</div>
+                    時間、短語、緊急號碼、旅行提示均可離線使用
+                </li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>💡 旅行實用提示</h2>
+            <ul class="tips-list">
+                <li class="tip-item">
+                    <div class="tip-title">🚇 交通卡</div>
+                    使用 SUICA 或 PASMO 卡可在日本各地乘搭公共交通工具及在便利店購物
+                </li>
+                <li class="tip-item">
+                    <div class="tip-title">📱 免費 Wi-Fi</div>
+                    主要車站、便利店、咖啡店通常提供免費 Wi-Fi，可下載「Japan Wi-Fi」應用程式
+                </li>
+                <li class="tip-item">
+                    <div class="tip-title">💴 現金為主</div>
+                    雖然信用卡日漸普及，但許多小店仍只接受現金，建議隨身攜帶現金
+                </li>
+                <li class="tip-item">
+                    <div class="tip-title">🗺️ 導航應用</div>
+                    Google Maps 及 Japan Travel by Navitime 在日本非常準確，建議預先下載
+                </li>
+                <li class="tip-item">
+                    <div class="tip-title">🍣 餐廳禮儀</div>
+                    用餐後在座位付款，無需給小費。進入餐廳前記得脫鞋（如有要求）
+                </li>
+                <li class="tip-item">
+                    <div class="tip-title">🚄 新幹線訂票</div>
+                    可使用 SmartEX 應用程式提前預訂新幹線車票，持 JR Pass 者需到售票處劃位
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const phrases = {
+            basic: [
+                { jp: 'こんにちは', en: 'Hello', zh: '你好' },
+                { jp: 'ありがとうございます', en: 'Thank you', zh: '謝謝' },
+                { jp: 'すみません', en: 'Excuse me / Sorry', zh: '不好意思／對不起' },
+                { jp: 'はい / いいえ', en: 'Yes / No', zh: '是／不是' },
+                { jp: 'わかりません', en: "I don't understand", zh: '我不明白' },
+                { jp: '英語を話せますか？', en: 'Do you speak English?', zh: '你會說英語嗎？' },
+                { jp: 'トイレはどこですか？', en: 'Where is the toilet?', zh: '洗手間在哪裡？' },
+                { jp: 'いくらですか？', en: 'How much is it?', zh: '多少錢？' }
+            ],
+            restaurant: [
+                { jp: 'メニューをください', en: 'Menu please', zh: '請給我菜單' },
+                { jp: 'これをください', en: 'I want this', zh: '我要這個' },
+                { jp: 'お会計お願いします', en: 'Check please', zh: '請結帳' },
+                { jp: 'おいしいです', en: 'Delicious', zh: '好吃' },
+                { jp: '水をください', en: 'Water please', zh: '請給我水' },
+                { jp: 'おすすめは何ですか？', en: 'What do you recommend?', zh: '你推薦什麼？' },
+                { jp: 'ベジタリアンメニューはありますか？', en: 'Do you have vegetarian menu?', zh: '有素食菜單嗎？' }
+            ],
+            shopping: [
+                { jp: 'これを見せてください', en: 'Please show me this', zh: '請給我看這個' },
+                { jp: '試着できますか？', en: 'Can I try it on?', zh: '可以試穿嗎？' },
+                { jp: '他のサイズはありますか？', en: 'Do you have other sizes?', zh: '有其他尺寸嗎？' },
+                { jp: '免税できますか？', en: 'Can I get tax-free?', zh: '可以免稅嗎？' },
+                { jp: 'クレジットカードは使えますか？', en: 'Can I use credit card?', zh: '可以用信用卡嗎？' },
+                { jp: '袋をください', en: 'Bag please', zh: '請給我袋子' },
+                { jp: '安くしてください', en: 'Please give me a discount', zh: '請便宜一點' }
+            ],
+            direction: [
+                { jp: '〜はどこですか？', en: 'Where is ~?', zh: '～在哪裡？' },
+                { jp: '駅はどこですか？', en: 'Where is the station?', zh: '車站在哪裡？' },
+                { jp: 'まっすぐ', en: 'Straight', zh: '直走' },
+                { jp: '右 / 左', en: 'Right / Left', zh: '右邊／左邊' },
+                { jp: '地図を見せてもらえますか？', en: 'Can you show me on the map?', zh: '可以指給我看地圖嗎？' },
+                { jp: 'ここに行きたいです', en: 'I want to go here', zh: '我想去這裡' },
+                { jp: '迷いました', en: 'I am lost', zh: '我迷路了' }
+            ]
+        };
+
+        function updateJapanTime() {
+            const now = new Date();
+            const japanTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
+            
+            const timeString = japanTime.toLocaleTimeString('zh-HK', { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit',
+                hour12: false 
+            });
+            
+            const dateString = japanTime.toLocaleDateString('zh-HK', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                weekday: 'long'
+            });
+            
+            document.getElementById('japanTime').textContent = timeString;
+            document.getElementById('japanDate').textContent = dateString;
+        }
+
+        async function fetchWeather() {
+            const cities = [
+                { name: '東京', lat: 35.6762, lon: 139.6503 },
+                { name: '大阪', lat: 34.6937, lon: 135.5023 },
+                { name: '京都', lat: 35.0116, lon: 135.7681 },
+                { name: '福岡', lat: 33.5904, lon: 130.4017 }
+            ];
+
+            const weatherGrid = document.getElementById('weatherGrid');
+            weatherGrid.innerHTML = '';
+
+            let hasError = false;
+
+            for (const city of cities) {
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 5000);
+                    
+                    const response = await fetch(
+                        `https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&current=temperature_2m,weather_code&timezone=Asia/Tokyo`,
+                        { signal: controller.signal }
+                    );
+                    clearTimeout(timeoutId);
+                    
+                    const data = await response.json();
+                    
+                    const temp = Math.round(data.current.temperature_2m);
+                    const weatherCode = data.current.weather_code;
+                    const weatherDesc = getWeatherDescription(weatherCode);
+
+                    const weatherItem = document.createElement('div');
+                    weatherItem.className = 'weather-item';
+                    weatherItem.innerHTML = `
+                        <div class="weather-city">${city.name}</div>
+                        <div class="weather-temp">${temp}°C</div>
+                        <div class="weather-desc">${weatherDesc}</div>
+                    `;
+                    weatherGrid.appendChild(weatherItem);
+                } catch (error) {
+                    hasError = true;
+                    console.error(`無法取得 ${city.name} 天氣:`, error);
+                    const weatherItem = document.createElement('div');
+                    weatherItem.className = 'weather-item';
+                    weatherItem.innerHTML = `
+                        <div class="weather-city">${city.name}</div>
+                        <div class="weather-temp">--°C</div>
+                        <div class="weather-desc">無法連線</div>
+                    `;
+                    weatherGrid.appendChild(weatherItem);
+                }
+            }
+
+            if (hasError) {
+                const notice = document.createElement('div');
+                notice.style.cssText = 'grid-column: 1/-1; text-align: center; color: var(--color-orange-500); font-size: 12px; margin-top: 8px;';
+                notice.textContent = '💡 提示：請在 Safari 新分頁中打開以獲取天氣資訊';
+                weatherGrid.appendChild(notice);
+            }
+        }
+
+        function getWeatherDescription(code) {
+            const weatherCodes = {
+                0: '晴天',
+                1: '大致晴朗',
+                2: '局部多雲',
+                3: '多雲',
+                45: '有霧',
+                48: '霧凇',
+                51: '小雨',
+                53: '中雨',
+                55: '大雨',
+                61: '小雨',
+                63: '中雨',
+                65: '大雨',
+                71: '小雪',
+                73: '中雪',
+                75: '大雪',
+                77: '雪粒',
+                80: '陣雨',
+                81: '中陣雨',
+                82: '大陣雨',
+                85: '小陣雪',
+                86: '大陣雪',
+                95: '雷暴',
+                96: '雷暴帶冰雹',
+                99: '強雷暴帶冰雹'
+            };
+            return weatherCodes[code] || '未知';
+        }
+
+        async function updateExchangeRate() {
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
+                
+                const response = await fetch('https://api.exchangerate-api.com/v4/latest/HKD', {
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                
+                const data = await response.json();
+                const rate = data.rates.JPY;
+                
+                window.exchangeRate = rate;
+                document.getElementById('exchangeRate').textContent = `匯率: 1 HKD = ${rate.toFixed(2)} JPY (即時)`;
+                convertCurrency();
+            } catch (error) {
+                console.error('無法取得匯率:', error);
+                window.exchangeRate = 18.5;
+                document.getElementById('exchangeRate').textContent = `匯率: 1 HKD ≈ 18.5 JPY (參考值，請在新分頁中打開以獲取即時匯率)`;
+                convertCurrency();
+            }
+        }
+
+        function convertCurrency() {
+            const hkdInput = document.getElementById('hkdInput');
+            const jpyInput = document.getElementById('jpyInput');
+            const hkd = parseFloat(hkdInput.value) || 0;
+            const jpy = hkd * (window.exchangeRate || 18.5);
+            jpyInput.value = Math.round(jpy);
+        }
+
+        function renderPhrases() {
+            for (const [category, phraseList] of Object.entries(phrases)) {
+                const listElement = document.getElementById(`${category}List`);
+                listElement.innerHTML = '';
+                
+                phraseList.forEach(phrase => {
+                    const li = document.createElement('li');
+                    li.className = 'phrase-item';
+                    li.innerHTML = `
+                        <div class="phrase-jp">${phrase.jp}</div>
+                        <div class="phrase-zh">${phrase.zh}</div>
+                        <div class="phrase-en">${phrase.en}</div>
+                    `;
+                    li.onclick = () => {
+                        if ('speechSynthesis' in window) {
+                            const utterance = new SpeechSynthesisUtterance(phrase.jp);
+                            utterance.lang = 'ja-JP';
+                            speechSynthesis.speak(utterance);
+                        }
+                    };
+                    listElement.appendChild(li);
+                });
+            }
+        }
+
+        function switchPhraseTab(category) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`${category}Phrases`).classList.add('active');
+        }
+
+        document.getElementById('hkdInput').addEventListener('input', convertCurrency);
+
+        updateJapanTime();
+        setInterval(updateJapanTime, 1000);
+        
+        fetchWeather();
+        setInterval(fetchWeather, 1800000);
+        
+        updateExchangeRate();
+        renderPhrases();
+    </script>
+</body>
+</html>
