@@ -1,15 +1,610 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-Hant">
 <head>
-<meta http-equiv="refresh" content="0; url=nfc.html" />
-<title>Redirection</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的工具集 | GitHub Pages Hub</title>
+    <style>
+        .lock-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--color-background);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .lock-screen.unlocked {
+            display: none;
+        }
+
+        .lock-time {
+            font-size: 4rem;
+            font-weight: 300;
+            margin-bottom: 8px;
+            color: var(--color-text);
+        }
+
+        .lock-date {
+            font-size: 1.2rem;
+            color: var(--color-text-secondary);
+            margin-bottom: 64px;
+        }
+
+        .passcode-dots {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 48px;
+        }
+
+        .dot {
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--color-text-secondary);
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .dot.filled {
+            background: var(--color-text);
+            border-color: var(--color-text);
+        }
+
+        .dot.shake {
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .numpad {
+            display: grid;
+            grid-template-columns: repeat(3, 80px);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .num-button {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: none;
+            background: var(--color-surface);
+            color: var(--color-text);
+            font-size: 2rem;
+            font-weight: 300;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .num-button:hover {
+            background: var(--color-primary);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .num-button:active {
+            transform: scale(0.95);
+        }
+
+        .num-button.delete {
+            background: transparent;
+            font-size: 1.5rem;
+        }
+
+        .lock-hint {
+            color: var(--color-text-secondary);
+            font-size: 0.9rem;
+            margin-top: 16px;
+        }
+
+        .main-content {
+            display: none;
+        }
+
+        .main-content.unlocked {
+            display: block;
+        }
+
+        :root {
+            --color-cream-50: rgba(252, 252, 249, 1);
+            --color-cream-100: rgba(255, 255, 253, 1);
+            --color-gray-300: rgba(167, 169, 169, 1);
+            --color-slate-500: rgba(98, 108, 113, 1);
+            --color-brown-600: rgba(94, 82, 64, 1);
+            --color-charcoal-700: rgba(31, 33, 33, 1);
+            --color-charcoal-800: rgba(38, 40, 40, 1);
+            --color-slate-900: rgba(19, 52, 59, 1);
+            --color-teal-300: rgba(50, 184, 198, 1);
+            --color-teal-500: rgba(33, 128, 141, 1);
+            --color-teal-600: rgba(29, 116, 128, 1);
+            --color-gray-200: rgba(245, 245, 245, 1);
+            --color-gray-400: rgba(119, 124, 124, 1);
+            
+            --color-brown-600-rgb: 94, 82, 64;
+            --color-teal-500-rgb: 33, 128, 141;
+            --color-slate-900-rgb: 19, 52, 59;
+            
+            --color-background: var(--color-cream-50);
+            --color-surface: var(--color-cream-100);
+            --color-text: var(--color-slate-900);
+            --color-text-secondary: var(--color-slate-500);
+            --color-primary: var(--color-teal-500);
+            --color-primary-hover: var(--color-teal-600);
+            --color-border: rgba(var(--color-brown-600-rgb), 0.2);
+            --color-card-border: rgba(var(--color-brown-600-rgb), 0.12);
+            
+            --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --radius-base: 8px;
+            --radius-lg: 12px;
+            --space-16: 16px;
+            --space-24: 24px;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --color-gray-400-rgb: 119, 124, 124;
+                --color-teal-300-rgb: 50, 184, 198;
+                --color-gray-200-rgb: 245, 245, 245;
+                
+                --color-background: var(--color-charcoal-700);
+                --color-surface: var(--color-charcoal-800);
+                --color-text: var(--color-gray-200);
+                --color-text-secondary: rgba(var(--color-gray-200-rgb), 0.7);
+                --color-primary: var(--color-teal-300);
+                --color-border: rgba(var(--color-gray-400-rgb), 0.3);
+                --color-card-border: rgba(var(--color-gray-400-rgb), 0.2);
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-family-base);
+            background: var(--color-background);
+            color: var(--color-text);
+            line-height: 1.6;
+            padding: var(--space-24);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 48px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--color-text);
+        }
+
+        .subtitle {
+            color: var(--color-text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .config-section {
+            background: var(--color-surface);
+            border: 1px solid var(--color-card-border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-24);
+            margin-bottom: 32px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .config-section h2 {
+            font-size: 1.3rem;
+            margin-bottom: var(--space-16);
+            color: var(--color-text);
+        }
+
+        .input-group {
+            margin-bottom: var(--space-16);
+        }
+
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--color-text);
+            font-size: 0.95rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-base);
+            font-size: 1rem;
+            background: var(--color-background);
+            color: var(--color-text);
+            transition: all 0.2s;
+        }
+
+        input:focus {
+            outline: 2px solid var(--color-primary);
+            border-color: var(--color-primary);
+        }
+
+        button {
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: var(--radius-base);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background: var(--color-primary-hover);
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 48px;
+            color: var(--color-text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        .error {
+            background: rgba(192, 21, 47, 0.1);
+            border: 1px solid rgba(192, 21, 47, 0.25);
+            color: #c0152f;
+            padding: var(--space-16);
+            border-radius: var(--radius-base);
+            margin-bottom: var(--space-24);
+        }
+
+        .apps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+            margin-top: 32px;
+        }
+
+        .app-card {
+            background: var(--color-surface);
+            border: 1px solid var(--color-card-border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .app-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--color-primary);
+        }
+
+        .app-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--color-primary), var(--color-teal-300));
+            border-radius: var(--radius-base);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: var(--space-16);
+            font-size: 24px;
+        }
+
+        .app-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--color-text);
+        }
+
+        .app-path {
+            font-size: 0.875rem;
+            color: var(--color-text-secondary);
+            font-family: monospace;
+        }
+
+        .stats {
+            text-align: center;
+            margin-top: 48px;
+            padding-top: 24px;
+            border-top: 1px solid var(--color-border);
+            color: var(--color-text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .apps-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
+    <div class="lock-screen" id="lockScreen">
+        <div class="lock-time" id="lockTime"></div>
+        <div class="lock-date" id="lockDate"></div>
+        
+        <div class="passcode-dots">
+            <div class="dot" id="dot1"></div>
+            <div class="dot" id="dot2"></div>
+            <div class="dot" id="dot3"></div>
+            <div class="dot" id="dot4"></div>
+        </div>
 
-<!--p><a href="https://adrianleung20142.wixsite.com/adrian-leung-persona">Redirect</a></p-->
+        <div class="numpad">
+            <button class="num-button" onclick="enterDigit('1')">1</button>
+            <button class="num-button" onclick="enterDigit('2')">2</button>
+            <button class="num-button" onclick="enterDigit('3')">3</button>
+            <button class="num-button" onclick="enterDigit('4')">4</button>
+            <button class="num-button" onclick="enterDigit('5')">5</button>
+            <button class="num-button" onclick="enterDigit('6')">6</button>
+            <button class="num-button" onclick="enterDigit('7')">7</button>
+            <button class="num-button" onclick="enterDigit('8')">8</button>
+            <button class="num-button" onclick="enterDigit('9')">9</button>
+            <button class="num-button delete"></button>
+            <button class="num-button" onclick="enterDigit('0')">0</button>
+            <button class="num-button delete" onclick="deleteDigit()">⌫</button>
+        </div>
 
-  
-<p><a href="nfc.html">Redirect</a></p>
+        <div class="lock-hint">輸入密碼以解鎖</div>
+    </div>
 
+    <div class="container main-content" id="mainContent">
+        <header>
+            <h1>🚀 我的工具集</h1>
+            <p class="subtitle">所有 HTML 工具的中央目錄</p>
+        </header>
+
+        <div class="config-section">
+            <h2>⚙️ 設定</h2>
+            <div class="input-group">
+                <label for="username">GitHub 用戶名稱</label>
+                <input type="text" id="username" placeholder="例如: octocat" value="">
+            </div>
+            <div class="input-group">
+                <label for="repo">Repository 名稱</label>
+                <input type="text" id="repo" placeholder="例如: octocat.github.io" value="">
+            </div>
+            <div class="input-group">
+                <label for="branch">分支名稱（可選）</label>
+                <input type="text" id="branch" placeholder="預設: main" value="main">
+            </div>
+            <button onclick="loadApps()">載入工具列表</button>
+        </div>
+
+        <div id="content"></div>
+    </div>
+
+    <script>
+        // 鎖屏功能
+        const PASSCODE = '2468';
+        let currentPasscode = '';
+
+        function updateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false });
+            const dateStr = now.toLocaleDateString('zh-TW', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            
+            document.getElementById('lockTime').textContent = timeStr;
+            document.getElementById('lockDate').textContent = dateStr;
+        }
+
+        function updateDots() {
+            for (let i = 1; i <= 4; i++) {
+                const dot = document.getElementById(`dot${i}`);
+                if (i <= currentPasscode.length) {
+                    dot.classList.add('filled');
+                } else {
+                    dot.classList.remove('filled');
+                }
+            }
+        }
+
+        function enterDigit(digit) {
+            if (currentPasscode.length < 4) {
+                currentPasscode += digit;
+                updateDots();
+
+                if (currentPasscode.length === 4) {
+                    checkPasscode();
+                }
+            }
+        }
+
+        function deleteDigit() {
+            if (currentPasscode.length > 0) {
+                currentPasscode = currentPasscode.slice(0, -1);
+                updateDots();
+            }
+        }
+
+        function checkPasscode() {
+            if (currentPasscode === PASSCODE) {
+                // 正確密碼
+                document.getElementById('lockScreen').classList.add('unlocked');
+                document.getElementById('mainContent').classList.add('unlocked');
+            } else {
+                // 錯誤密碼 - 搖動動畫
+                const dots = document.querySelectorAll('.dot');
+                dots.forEach(dot => {
+                    dot.classList.add('shake');
+                    setTimeout(() => dot.classList.remove('shake'), 500);
+                });
+                
+                setTimeout(() => {
+                    currentPasscode = '';
+                    updateDots();
+                }, 500);
+            }
+        }
+
+        // 初始化時鐘
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        // 自動偵測當前 repo 資訊
+        function detectRepoInfo() {
+            const url = window.location.hostname;
+            const path = window.location.pathname;
+
+            // 檢查是否為 GitHub Pages URL (username.github.io 或 username.github.io/repo)
+            if (url.endsWith('.github.io')) {
+                const username = url.split('.')[0];
+                document.getElementById('username').value = username;
+
+                // 如果有路徑，第一段就是 repo 名稱
+                const pathParts = path.split('/').filter(p => p);
+                if (pathParts.length > 0) {
+                    document.getElementById('repo').value = pathParts[0];
+                } else {
+                    // 沒有路徑表示是主 repo (username.github.io)
+                    document.getElementById('repo').value = url;
+                }
+
+                // 自動載入
+                loadApps();
+            }
+        }
+
+        async function loadApps() {
+            const username = document.getElementById('username').value.trim();
+            const repo = document.getElementById('repo').value.trim();
+            const branch = document.getElementById('branch').value.trim() || 'main';
+            const contentDiv = document.getElementById('content');
+
+            if (!username || !repo) {
+                contentDiv.innerHTML = '<div class="error">請填寫 GitHub 用戶名稱和 Repository 名稱</div>';
+                return;
+            }
+
+            contentDiv.innerHTML = '<div class="loading">正在載入工具列表</div>';
+
+            try {
+                const apiUrl = `https://api.github.com/repos/${username}/${repo}/git/trees/${branch}?recursive=1`;
+                const response = await fetch(apiUrl);
+
+                if (!response.ok) {
+                    throw new Error(`無法載入 repository 資訊 (${response.status})`);
+                }
+
+                const data = await response.json();
+
+                // 篩選出 .html 檔案（排除 index.html）
+                const htmlFiles = data.tree
+                    .filter(item => 
+                        item.type === 'blob' && 
+                        item.path.endsWith('.html') && 
+                        !item.path.includes('index.html')
+                    )
+                    .sort((a, b) => a.path.localeCompare(b.path));
+
+                if (htmlFiles.length === 0) {
+                    contentDiv.innerHTML = '<div class="error">沒有找到任何 HTML 工具檔案</div>';
+                    return;
+                }
+
+                // 產生卡片
+                let html = '<div class="apps-grid">';
+                
+                htmlFiles.forEach(file => {
+                    const fileName = file.path.split('/').pop().replace('.html', '');
+                    const displayName = fileName
+                        .split(/[-_]/)
+                        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                        .join(' ');
+                    
+                    // 決定基礎 URL
+                    let baseUrl;
+                    if (repo === `${username}.github.io`) {
+                        baseUrl = `https://${username}.github.io`;
+                    } else {
+                        baseUrl = `https://${username}.github.io/${repo}`;
+                    }
+                    
+                    const appUrl = `${baseUrl}/${file.path}`;
+                    
+                    // 根據檔名第一個字母產生 emoji
+                    const firstChar = fileName.charAt(0).toLowerCase();
+                    const emojiMap = {
+                        'a': '🎨', 'b': '📦', 'c': '🔧', 'd': '📊', 'e': '✉️',
+                        'f': '📁', 'g': '🎮', 'h': '🏠', 'i': 'ℹ️', 'j': '🎯',
+                        'k': '🔑', 'l': '📝', 'm': '📱', 'n': '📰', 'o': '🔓',
+                        'p': '📌', 'q': '❓', 'r': '🚀', 's': '⚙️', 't': '🏷️',
+                        'u': '👤', 'v': '📹', 'w': '🌐', 'x': '❌', 'y': '💛',
+                        'z': '⚡'
+                    };
+                    const emoji = emojiMap[firstChar] || '📄';
+
+                    html += `
+                        <a href="${appUrl}" class="app-card" target="_blank">
+                            <div class="app-icon">${emoji}</div>
+                            <div class="app-name">${displayName}</div>
+                            <div class="app-path">${file.path}</div>
+                        </a>
+                    `;
+                });
+
+                html += '</div>';
+                html += `<div class="stats">共找到 ${htmlFiles.length} 個工具</div>`;
+                
+                contentDiv.innerHTML = html;
+
+            } catch (error) {
+                contentDiv.innerHTML = `<div class="error">載入失敗：${error.message}<br><br>請確認：<br>1. 用戶名稱和 Repository 名稱正確<br>2. Repository 是公開的<br>3. 分支名稱正確</div>`;
+            }
+        }
+
+        // 頁面載入時自動偵測
+        window.addEventListener('DOMContentLoaded', detectRepoInfo);
+    </script>
 </body>
 </html>
+
