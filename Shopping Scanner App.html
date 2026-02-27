@@ -52,7 +52,7 @@
 
     main {
       padding: 0.75rem;
-      padding-bottom: 4.5rem; /* for bottom nav */
+      padding-bottom: 4.5rem;
       max-width: 800px;
       margin: 0 auto;
     }
@@ -192,6 +192,7 @@
       overflow: hidden;
       max-height: 260px;
       position: relative;
+      background: #000;
     }
 
     #scanner-video {
@@ -481,14 +482,6 @@
       font-weight: 600;
     }
 
-    .nav-indicator {
-      width: 3rem;
-      height: 0.2rem;
-      border-radius: 999px;
-      background: rgba(0,0,0,0.06);
-      margin: 0 auto 0.1rem;
-    }
-
     .badge {
       background: var(--primary);
       color: #fff;
@@ -517,14 +510,13 @@
       main { padding-top: 1rem; }
     }
   </style>
-  <!-- Quagga2 for barcode scanning -->
   <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.2.6/dist/quagga.min.js"></script>
 </head>
 <body>
   <header>
     <div>
       <h1>HK Supermarket Scanner</h1>
-      <span>Compare Wellcome · PARKnSHOP prices</span>
+      <span>Compare Wellcome · PARKnSHOP</span>
     </div>
     <div class="pill">
       <span>Local only · No login</span>
@@ -532,7 +524,7 @@
   </header>
 
   <main>
-    <!-- Scan / Search Section -->
+    <!-- Scan / Search -->
     <section id="screen-scan" class="section">
       <div class="card">
         <h2>Scan or enter barcode</h2>
@@ -543,7 +535,7 @@
               <span class="barcode-icon">▦</span>
               <input id="barcode-input" type="text" inputmode="numeric" autocomplete="off" placeholder="e.g. 4891028165114" required />
             </div>
-            <div class="hint">You can scan with camera or type the barcode by hand.</div>
+            <div class="hint">Use camera or type the barcode by hand.</div>
           </div>
           <div>
             <button type="submit" id="btn-lookup">Lookup</button>
@@ -564,7 +556,7 @@
         <div id="scan-status" class="status"></div>
 
         <div class="scan-preview" id="scan-preview" style="display:none;">
-          <video id="scanner-video"></video>
+          <video id="scanner-video" autoplay muted playsinline webkit-playsinline></video>
           <div class="scan-overlay"></div>
         </div>
       </div>
@@ -586,14 +578,19 @@
 
         <div class="mt-md">
           <h3 style="font-size:0.9rem; margin:0 0 0.25rem;">Available prices</h3>
-          <div class="hint">Prices fetched from supermarket sites when possible; you can also override manually.</div>
+          <div class="hint">Tries Wellcome & PARKnSHOP online. If blocked, use manual prices or open Online Price Watch.</div>
         </div>
 
         <div id="price-grid" class="price-grid"></div>
 
+        <div class="mt-sm">
+          <button type="button" class="secondary" id="btn-open-opw">🔎 Open Online Price Watch</button>
+          <div class="hint">Opens Consumer Council "Online Price Watch" in a new tab for full HK-wide price comparison.</div>
+        </div>
+
         <div class="mt-md">
           <h3 style="font-size:0.9rem; margin:0 0 0.25rem;">Manual price override</h3>
-          <div class="hint">If online price lookup fails or seems wrong, you can enter your own price from the shelf label.</div>
+          <div class="hint">If online lookup fails or looks wrong, input the shelf price here.</div>
           <form id="manual-price-form" class="filters-row" style="margin-top:0.4rem;">
             <select id="manual-store">
               <option value="wellcome">Wellcome</option>
@@ -604,15 +601,24 @@
             <button type="submit">Add to cart</button>
           </form>
         </div>
+
+        <div class="mt-md">
+          <h3 style="font-size:0.9rem; margin:0 0 0.25rem;">Product photo</h3>
+          <div class="hint">Take a quick photo so you recognise the product next time.</div>
+          <div class="btn-row" style="margin-top:0.35rem;">
+            <button type="button" id="btn-product-photo" class="secondary">📸 Take / upload product photo</button>
+          </div>
+          <input type="file" id="product-photo-input" accept="image/*" capture="environment" style="display:none;" />
+        </div>
       </div>
     </section>
 
-    <!-- Carts Section -->
+    <!-- Carts -->
     <section id="screen-carts" class="section" style="display:none;">
       <div class="card">
         <div class="cart-section-header">
           <h2>Store shopping carts</h2>
-          <span class="text-small">All items saved on this device only.</span>
+          <span class="text-small">Everything is stored only on this device.</span>
         </div>
 
         <div class="store-tabs" id="store-tabs"></div>
@@ -627,19 +633,24 @@
       </div>
     </section>
 
-    <!-- Settings / Info Section -->
+    <!-- Info -->
     <section id="screen-settings" class="section" style="display:none;">
       <div class="card">
-        <h2>App info & tips</h2>
+        <h2>App info & data sources</h2>
         <p class="text-small">
-          This app stores everything in your browser (localStorage). Clearing your browser data will remove your products and carts.
+          • Product info (name / brand / image) is looked up from the community Open Food Facts API by barcode when possible.
+          When not found, you can enter the product name yourself and optionally attach a photo.
         </p>
         <p class="text-small">
-          Product information is fetched via the community-driven Open Food Facts API when possible, based on the barcode.
-          Supermarket prices are looked up via their public websites, but due to technical limits (like CORS) some price lookups may fail.
+          • Supermarket prices are best-effort scrapes from Wellcome and PARKnSHOP public sites. Due to CORS and layout changes,
+          automatic lookup can fail. In that case, rely on the in-store shelf price and manual entry.
         </p>
         <p class="text-small">
-          When in-store, scan the shelf label or barcode, update the price manually if needed, then open the corresponding store cart to follow your best prices.
+          • For a full HK-wide comparison across multiple chains, use the official Consumer Council "Online Price Watch" site.
+          This app simply gives you quick carts per store based on the best prices you actually see.
+        </p>
+        <p class="text-small">
+          All your products and carts are kept in your browser's localStorage. Clearing browser data will remove them.
         </p>
         <div class="mt-md">
           <button type="button" id="btn-reset-all" class="secondary">Reset all local data</button>
@@ -666,7 +677,6 @@
   </nav>
 
   <script>
-    // --- Data Layer ---
     const STORAGE_KEY = 'hkSupermarketScanner.v1';
 
     const STORES = {
@@ -679,7 +689,7 @@
         const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) {
           return {
-            products: {}, // barcode -> product
+            products: {},
             carts: {
               wellcome: { id: 'wellcome', items: [] },
               pns: { id: 'pns', items: [] }
@@ -715,11 +725,10 @@
     }
 
     let state = loadState();
-    let currentProduct = null; // currently displayed product
+    let currentProduct = null;
     let activeStoreId = 'wellcome';
     let scanning = false;
 
-    // --- DOM helpers ---
     const $ = (id) => document.getElementById(id);
 
     const scanStatusEl = $('scan-status');
@@ -791,8 +800,8 @@
 
     function renderCart() {
       const cart = state.carts[activeStoreId];
-      const { total, count } = computeCartTotals(cart);
       if (!cart) return;
+      const { total, count } = computeCartTotals(cart);
 
       if (!cart.items.length) {
         cartListEl.innerHTML = '<div class="empty-state">No items in this cart yet. Scan a product and add it for this store.</div>';
@@ -836,7 +845,6 @@
           cartListEl.appendChild(row);
         });
 
-        // Attach qty change / remove handlers
         cartListEl.querySelectorAll('.qty-field').forEach((input) => {
           input.addEventListener('change', (e) => {
             const idx = Number(e.target.getAttribute('data-index'));
@@ -863,7 +871,7 @@
     function addToCart(storeId, product, price, quantity, source) {
       const cart = state.carts[storeId];
       if (!cart) return;
-      const existingIndex = cart.items.findIndex((i) => i.barcode === product.barcode && i.price === price);
+      const existingIndex = cart.items.findIndex((i) => i.barcode === product.barcode && i.price === price && i.source === source);
       if (existingIndex >= 0) {
         cart.items[existingIndex].quantity += quantity;
       } else {
@@ -879,15 +887,12 @@
       renderCart();
     }
 
-    // --- Product & price lookup ---
-
     async function lookupProductByBarcode(barcode) {
       barcode = (barcode || '').trim();
       if (!barcode) return;
 
       setStatus('Looking up product info…', '');
 
-      // 1. Check local cache first
       if (state.products[barcode]) {
         currentProduct = state.products[barcode];
         showProduct(currentProduct, 'cached');
@@ -895,7 +900,6 @@
         return;
       }
 
-      // 2. Try Open Food Facts API by barcode
       try {
         const url = `https://world.openfoodfacts.net/api/v2/product/${encodeURIComponent(barcode)}?fields=code,product_name,brands,image_url`;
         const res = await fetch(url, {
@@ -926,7 +930,6 @@
         console.warn('Open Food Facts lookup failed', e);
       }
 
-      // 3. Fallback: ask user to fill in basic product info
       setStatus('Product not found online. Please enter a name so it can be saved.', 'error');
       askUserForManualProduct(barcode);
     }
@@ -974,7 +977,6 @@
       setStatus('Looking up supermarket prices…', '');
       priceGridEl.innerHTML = '';
 
-      // In parallel: call Wellcome & PNS
       const [wellcomePrice, pnsPrice] = await Promise.all([
         lookupWellcomePrice(currentProduct),
         lookupPnsPrice(currentProduct)
@@ -985,12 +987,11 @@
       if (pnsPrice) entries.push({ store: STORES.pns, price: pnsPrice });
 
       if (!entries.length) {
-        priceGridEl.innerHTML = '<div class="hint">Online price lookup failed or is blocked. Please input prices manually from shelf labels.</div>';
-        setStatus('Unable to fetch prices from supermarket sites. Use manual price input.', 'error');
+        priceGridEl.innerHTML = '<div class="hint">Automatic price lookup failed or is blocked. Use shelf prices or Online Price Watch.</div>';
+        setStatus('Unable to fetch prices from supermarket sites. Use manual price input / Online Price Watch.', 'error');
         return;
       }
 
-      // Determine best price
       const bestEntry = entries.reduce((best, e) => (best == null || e.price < best.price ? e : best), null);
 
       entries.forEach((entry) => {
@@ -1013,11 +1014,11 @@
         priceGridEl.appendChild(card);
       });
 
-      // Attach cart add handlers
       priceGridEl.querySelectorAll('button[data-store-id]').forEach((btn) => {
         btn.addEventListener('click', (e) => {
-          const storeId = e.target.closest('button').getAttribute('data-store-id');
-          const price = Number(e.target.closest('button').getAttribute('data-price'));
+          const button = e.currentTarget;
+          const storeId = button.getAttribute('data-store-id');
+          const price = Number(button.getAttribute('data-price'));
           addToCart(storeId, currentProduct, price, 1, 'online');
           setStatus(`Added to ${STORES[storeId].name} cart.`, 'success');
         });
@@ -1027,9 +1028,6 @@
     }
 
     async function lookupWellcomePrice(product) {
-      // NOTE: There is no public, stable barcode API for Wellcome. This function
-      // performs a best-effort search by product name against their site.
-      // It may fail due to CORS, HTML structure changes, or blocking.
       const query = encodeURIComponent(product.name || product.brand || product.barcode);
       const url = `https://www.wellcome.com.hk/en/search?q=${query}`;
       try {
@@ -1037,8 +1035,6 @@
         if (!res.ok) return null;
         const html = await res.text();
         const doc = new DOMParser().parseFromString(html, 'text/html');
-        // Heuristic: find first price-looking element (this selector may need to be
-        // updated if their markup changes).
         const priceEl = doc.querySelector('[class*="price"], .price');
         if (!priceEl) return null;
         const text = priceEl.textContent || '';
@@ -1052,7 +1048,6 @@
     }
 
     async function lookupPnsPrice(product) {
-      // Similar best-effort search for PARKnSHOP PNS eShop site. May fail due to CORS.
       const query = encodeURIComponent(product.name || product.brand || product.barcode);
       const url = `https://www.pns.hk/en/search?q=${query}`;
       try {
@@ -1072,8 +1067,6 @@
       }
     }
 
-    // --- Barcode scanning with Quagga2 ---
-
     function startScanning() {
       if (scanning) return;
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -1085,7 +1078,7 @@
       scanPreviewEl.style.display = 'block';
       $('btn-start-scan').disabled = true;
       $('btn-stop-scan').disabled = false;
-      setStatus('Point the camera at the barcode. It will stop after a successful scan.', '');
+      setStatus('Point the camera at the barcode. It will stop after a stable scan.', '');
 
       Quagga.init({
         inputStream: {
@@ -1097,7 +1090,8 @@
         },
         decoder: {
           readers: ['ean_reader', 'ean_8_reader', 'upc_reader', 'upc_e_reader']
-        }
+        },
+        locate: true
       }, function(err) {
         if (err) {
           console.error(err);
@@ -1131,13 +1125,29 @@
 
     function onBarcodeDetected(result) {
       if (!result || !result.codeResult || !result.codeResult.code) return;
+
+      // Use average error to filter out obvious false positives (Quagga tip)
+      let decoded = result.codeResult.decodedCodes || [];
+      let errSum = 0;
+      let errCount = 0;
+      decoded.forEach((d) => {
+        if (d.error !== undefined) {
+          errSum += Number(d.error);
+          errCount++;
+        }
+      });
+      const avgErr = errCount ? errSum / errCount : 1;
       const code = result.codeResult.code;
+
+      // Ignore bad or too-short reads
+      if (avgErr > 0.1 || !code || code.length < 8) {
+        return;
+      }
+
       stopScanning();
       $('barcode-input').value = code;
       lookupProductByBarcode(code);
     }
-
-    // --- Navigation ---
 
     document.querySelectorAll('.nav-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -1153,8 +1163,6 @@
         }
       });
     });
-
-    // --- Event wiring ---
 
     $('barcode-form').addEventListener('submit', (e) => {
       e.preventDefault();
@@ -1213,7 +1221,27 @@
       setStatus('All local data reset.', '');
     });
 
-    // --- Initial render ---
+    $('btn-open-opw').addEventListener('click', () => {
+      window.open('https://online-price-watch.consumer.org.hk/opw/', '_blank');
+    });
+
+    $('btn-product-photo').addEventListener('click', () => {
+      $('product-photo-input').click();
+    });
+
+    $('product-photo-input').addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file || !currentProduct) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        currentProduct.image = reader.result;
+        state.products[currentProduct.barcode] = currentProduct;
+        saveState();
+        showProduct(currentProduct, 'cached');
+      };
+      reader.readAsDataURL(file);
+    });
+
     renderStoreTabs();
     renderCart();
     updateCartBadge();
