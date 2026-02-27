@@ -13,7 +13,6 @@
       --border: #e0e0e0;
       --text-main: #212121;
       --text-muted: #757575;
-      --accent: #ffb300;
     }
 
     * {
@@ -491,26 +490,16 @@
       margin-left: 0.2rem;
     }
 
-    .text-right {
-      text-align: right;
-    }
-
-    .text-small {
-      font-size: 0.7rem;
-      color: var(--text-muted);
-    }
-
+    .text-right { text-align: right; }
+    .text-small { font-size: 0.7rem; color: var(--text-muted); }
     .mt-sm { margin-top: 0.35rem; }
     .mt-md { margin-top: 0.6rem; }
 
     @media (min-width: 768px) {
-      header h1 {
-        font-size: 1.25rem;
-      }
+      header h1 { font-size: 1.25rem; }
       main { padding-top: 1rem; }
     }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.2.6/dist/quagga.min.js"></script>
 </head>
 <body>
   <header>
@@ -578,14 +567,14 @@
 
         <div class="mt-md">
           <h3 style="font-size:0.9rem; margin:0 0 0.25rem;">Available prices</h3>
-          <div class="hint">Tries Wellcome & PARKnSHOP online. If blocked, use manual prices or open Online Price Watch.</div>
+          <div class="hint">Tries Wellcome & PARKnSHOP online. If blocked, use manual prices or Online Price Watch.</div>
         </div>
 
         <div id="price-grid" class="price-grid"></div>
 
         <div class="mt-sm">
           <button type="button" class="secondary" id="btn-open-opw">🔎 Open Online Price Watch</button>
-          <div class="hint">Opens Consumer Council "Online Price Watch" in a new tab for full HK-wide price comparison.</div>
+          <div class="hint">Opens Consumer Council "Online Price Watch" in a new tab.</div>
         </div>
 
         <div class="mt-md">
@@ -646,8 +635,7 @@
           automatic lookup can fail. In that case, rely on the in-store shelf price and manual entry.
         </p>
         <p class="text-small">
-          • For a full HK-wide comparison across multiple chains, use the official Consumer Council "Online Price Watch" site.
-          This app simply gives you quick carts per store based on the best prices you actually see.
+          • For HK-wide comparison across multiple chains, use the official Consumer Council "Online Price Watch" site.
         </p>
         <p class="text-small">
           All your products and carts are kept in your browser's localStorage. Clearing browser data will remove them.
@@ -677,7 +665,7 @@
   </nav>
 
   <script>
-    const STORAGE_KEY = 'hkSupermarketScanner.v1';
+    const STORAGE_KEY = 'hkSupermarketScanner.v3';
 
     const STORES = {
       wellcome: { id: 'wellcome', name: 'Wellcome', color: '#e53935' },
@@ -727,7 +715,11 @@
     let state = loadState();
     let currentProduct = null;
     let activeStoreId = 'wellcome';
+
     let scanning = false;
+    let videoStream = null;
+    let scanRaf = null;
+    let barcodeDetector = null;
 
     const $ = (id) => document.getElementById(id);
 
@@ -1067,86 +1059,91 @@
       }
     }
 
-    function startScanning() {
+    async function startScanning() {
       if (scanning) return;
+
+      if (!('BarcodeDetector' in window)) {
+        setStatus('Barcode scanning not supported in this browser. Please type the barcode.', 'error');
+        return;
+      }
+
+      try {
+        barcodeDetector = new BarcodeDetector({
+          formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e']
+        });
+      } catch (e) {
+        console.error('BarcodeDetector init failed', e);
+        setStatus('BarcodeDetector init failed. Try another browser or use manual entry.', 'error');
+        return;
+      }
+
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         setStatus('Camera not supported in this browser. Please type the barcode manually.', 'error');
         return;
       }
 
-      scanning = true;
-      scanPreviewEl.style.display = 'block';
-      $('btn-start-scan').disabled = true;
-      $('btn-stop-scan').disabled = false;
-      setStatus('Point the camera at the barcode. It will stop after a stable scan.', '');
+      try {
+        scanPreviewEl.style.display = 'block';
+        $('btn-start-scan').disabled = true;
+        $('btn-stop-scan').disabled = false;
+        setStatus('Point the camera at the barcode. It will stop after a successful scan.', '');
 
-      Quagga.init({
-        inputStream: {
-          type: 'LiveStream',
-          target: scannerVideoEl,
-          constraints: {
-            facingMode: 'environment'
-          }
-        },
-        decoder: {
-          readers: ['ean_reader', 'ean_8_reader', 'upc_reader', 'upc_e_reader']
-        },
-        locate: true
-      }, function(err) {
-        if (err) {
-          console.error(err);
-          setStatus('Failed to start camera: ' + err.message, 'error');
-          scanning = false;
-          scanPreviewEl.style.display = 'none';
-          $('btn-start-scan').disabled = false;
-          $('btn-stop-scan').disabled = true;
-          return;
-        }
-        Quagga.start();
-      });
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment' },
+          audio: false
+        });
 
-      Quagga.onDetected(onBarcodeDetected);
+        videoStream = stream;
+        scannerVideoEl.srcObject = stream;
+        await scannerVideoEl.play();
+
+        scanning = true;
+        scanLoop();
+      } catch (err) {
+        console.error('getUserMedia error', err);
+        setStatus('Cannot access camera: ' + err.name, 'error');
+        scanPreviewEl.style.display = 'none';
+        $('btn-start-scan').disabled = false;
+        $('btn-stop-scan').disabled = true;
+      }
     }
 
     function stopScanning() {
-      if (!scanning) return;
       scanning = false;
-      try {
-        Quagga.offDetected(onBarcodeDetected);
-        Quagga.stop();
-      } catch (e) {
-        console.warn('Error stopping Quagga', e);
+      if (scanRaf) {
+        cancelAnimationFrame(scanRaf);
+        scanRaf = null;
       }
+      if (videoStream) {
+        videoStream.getTracks().forEach((t) => t.stop());
+        videoStream = null;
+      }
+      scannerVideoEl.srcObject = null;
       scanPreviewEl.style.display = 'none';
       $('btn-start-scan').disabled = false;
       $('btn-stop-scan').disabled = true;
       setStatus('Camera stopped.', '');
     }
 
-    function onBarcodeDetected(result) {
-      if (!result || !result.codeResult || !result.codeResult.code) return;
+    async function scanLoop() {
+      if (!scanning || !barcodeDetector) return;
 
-      // Use average error to filter out obvious false positives (Quagga tip)
-      let decoded = result.codeResult.decodedCodes || [];
-      let errSum = 0;
-      let errCount = 0;
-      decoded.forEach((d) => {
-        if (d.error !== undefined) {
-          errSum += Number(d.error);
-          errCount++;
+      try {
+        const barcodes = await barcodeDetector.detect(scannerVideoEl);
+        if (barcodes && barcodes.length) {
+          const code = barcodes[0].rawValue || '';
+          if (code && code.length >= 8) {
+            stopScanning();
+            $('barcode-input').value = code;
+            lookupProductByBarcode(code);
+            return;
+          }
         }
-      });
-      const avgErr = errCount ? errSum / errCount : 1;
-      const code = result.codeResult.code;
-
-      // Ignore bad or too-short reads
-      if (avgErr > 0.1 || !code || code.length < 8) {
-        return;
+      } catch (e) {
+        console.warn('Barcode detect error', e);
       }
 
-      stopScanning();
-      $('barcode-input').value = code;
-      lookupProductByBarcode(code);
+      scanRaf = requestAnimationFrame(scanLoop);
     }
 
     document.querySelectorAll('.nav-btn').forEach((btn) => {
