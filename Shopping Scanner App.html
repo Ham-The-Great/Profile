@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HK Supermarket Price Scanner</title>
+  <style>
+    :root {
+      --primary: #e53935;
+      --primary-dark: #b71c1c;
+      --bg: #fafafa;
+      --card-bg: #ffffff;
+      --border: #e0e0e0;
+      --text-main: #212121;
+      --text-muted: #757575;
+      --accent: #ffb300;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--primary);
+      color: #fff;
+      padding: 0.75rem 1rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    header h1 {
+      font-size: 1.1rem;
+      margin: 0;
+    }
+
+    header span {
+      font-size: 0.75rem;
+      opacity: 0.9;
+    }
+
+    main {
+      padding: 0.75rem;
+      padding-bottom: 4.5rem; /* for bottom nav */
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .section {
+      margin-bottom: 1rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 0.75rem;
+      padding: 0.75rem 0.9rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      border: 1px solid var(--border);
+    }
+
+    h2 {
+      font-size: 1rem;
+      margin: 0 0 0.5rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 0.25rem;
+    }
+
+    input[type="text"], input[type="number"], select {
+      width: 100%;
+      padding: 0.5rem 0.6rem;
+      border-radius: 0.5rem;
+      border: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 0.45rem 0.9rem;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      background: var(--primary);
+      color: #fff;
+    }
+
+    button.secondary {
+      background: #fff;
+      color: var(--primary);
+      border: 1px solid rgba(0,0,0,0.08);
+    }
+
+    button.ghost {
+      background: transparent;
+      color: var(--text-muted);
+      border-radius: 999px;
+      padding: 0.25rem 0.6rem;
+      border: none;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .barcode-form {
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .barcode-form > div {
+      flex: 1 1 160px;
+    }
+
+    .barcode-input-wrapper {
+      position: relative;
+    }
+
+    .barcode-input-wrapper input {
+      padding-left: 2.2rem;
+    }
+
+    .barcode-icon {
+      position: absolute;
+      left: 0.6rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1rem;
+      color: var(--text-muted);
+    }
+
+    .hint {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+
+    .status {
+      margin-top: 0.4rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .status.error {
+      color: #c62828;
+    }
+
+    .status.success {
+      color: #2e7d32;
+    }
+
+    .scan-preview {
+      margin-top: 0.5rem;
+      border-radius: 0.75rem;
+      overflow: hidden;
+      max-height: 260px;
+      position: relative;
+    }
+
+    #scanner-video {
+      width: 100%;
+      height: 240px;
+      object-fit: cover;
+      background: #000;
+    }
+
+    .scan-overlay {
+      position: absolute;
+      inset: 0;
+      border: 2px dashed rgba(255,255,255,0.85);
+      margin: 1.8rem;
+      border-radius: 0.75rem;
+      pointer-events: none;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.06);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .product-header {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+    }
+
+    .product-header img {
+      width: 72px;
+      height: 72px;
+      border-radius: 0.6rem;
+      object-fit: cover;
+      background: #eee;
+      flex-shrink: 0;
+    }
+
+    .product-meta {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .product-title {
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin-bottom: 0.1rem;
+    }
+
+    .product-sub {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 0.1rem;
+    }
+
+    .product-code {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .price-grid {
+      margin-top: 0.6rem;
+      border-top: 1px solid var(--border);
+      padding-top: 0.5rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.6rem;
+    }
+
+    .store-price-card {
+      border-radius: 0.6rem;
+      padding: 0.5rem;
+      background: #fff7f7;
+      border: 1px solid rgba(229,57,53,0.15);
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .store-name-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+    }
+
+    .store-name {
+      font-weight: 600;
+    }
+
+    .price-row {
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .price-note {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .tag-online {
+      background: rgba(67,160,71,0.12);
+      color: #2e7d32;
+    }
+
+    .tag-manual {
+      background: rgba(255,179,0,0.15);
+      color: #ef6c00;
+    }
+
+    .cart-section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.25rem;
+    }
+
+    .store-tabs {
+      display: flex;
+      gap: 0.4rem;
+      overflow-x: auto;
+      padding-bottom: 0.1rem;
+    }
+
+    .store-tab-button {
+      border-radius: 999px;
+      padding: 0.3rem 0.7rem;
+      border: 1px solid rgba(0,0,0,0.08);
+      background: #fff;
+      font-size: 0.8rem;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .store-tab-button.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary-dark);
+    }
+
+    .cart-list {
+      margin-top: 0.3rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .cart-item {
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-start;
+      border-radius: 0.6rem;
+      padding: 0.4rem 0.5rem;
+      background: #fff;
+      border: 1px solid var(--border);
+    }
+
+    .cart-item-thumb {
+      width: 52px;
+      height: 52px;
+      border-radius: 0.5rem;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .cart-item-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #eee;
+    }
+
+    .cart-item-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .cart-item-title {
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .cart-item-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin: 0.15rem 0;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .cart-item-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.4rem;
+      margin-top: 0.1rem;
+    }
+
+    .qty-input {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.8rem;
+    }
+
+    .qty-input input {
+      width: 3rem;
+      text-align: center;
+      padding-inline: 0.25rem;
+    }
+
+    .cart-total-row {
+      margin-top: 0.4rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.9rem;
+    }
+
+    .cart-total-row span strong {
+      font-size: 1rem;
+    }
+
+    .empty-state {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      padding: 0.3rem 0;
+    }
+
+    .filters-row {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 0.3rem;
+      align-items: center;
+    }
+
+    .filters-row select {
+      flex: 1 1 120px;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      inset-inline: 0;
+      bottom: 0;
+      z-index: 20;
+      background: #fff;
+      border-top: 1px solid var(--border);
+      box-shadow: 0 -1px 4px rgba(0,0,0,0.06);
+    }
+
+    .bottom-nav-inner {
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-around;
+      padding: 0.4rem 0.2rem;
+    }
+
+    .nav-btn {
+      background: none;
+      border-radius: 999px;
+      padding: 0.3rem 0.5rem;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.1rem;
+      border: none;
+      color: var(--text-muted);
+      flex: 1;
+      font-size: 0.7rem;
+    }
+
+    .nav-btn span.icon {
+      font-size: 1.1rem;
+    }
+
+    .nav-btn.active {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .nav-indicator {
+      width: 3rem;
+      height: 0.2rem;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.06);
+      margin: 0 auto 0.1rem;
+    }
+
+    .badge {
+      background: var(--primary);
+      color: #fff;
+      border-radius: 999px;
+      padding: 0 0.35rem;
+      font-size: 0.65rem;
+      margin-left: 0.2rem;
+    }
+
+    .text-right {
+      text-align: right;
+    }
+
+    .text-small {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .mt-sm { margin-top: 0.35rem; }
+    .mt-md { margin-top: 0.6rem; }
+
+    @media (min-width: 768px) {
+      header h1 {
+        font-size: 1.25rem;
+      }
+      main { padding-top: 1rem; }
+    }
+  </style>
+  <!-- Quagga2 for barcode scanning -->
+  <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.2.6/dist/quagga.min.js"></script>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>HK Supermarket Scanner</h1>
+      <span>Compare Wellcome · PARKnSHOP prices</span>
+    </div>
+    <div class="pill">
+      <span>Local only · No login</span>
+    </div>
+  </header>
+
+  <main>
+    <!-- Scan / Search Section -->
+    <section id="screen-scan" class="section">
+      <div class="card">
+        <h2>Scan or enter barcode</h2>
+        <form id="barcode-form" class="barcode-form">
+          <div>
+            <label for="barcode-input">Barcode</label>
+            <div class="barcode-input-wrapper">
+              <span class="barcode-icon">▦</span>
+              <input id="barcode-input" type="text" inputmode="numeric" autocomplete="off" placeholder="e.g. 4891028165114" required />
+            </div>
+            <div class="hint">You can scan with camera or type the barcode by hand.</div>
+          </div>
+          <div>
+            <button type="submit" id="btn-lookup">Lookup</button>
+          </div>
+        </form>
+
+        <div class="btn-row">
+          <button type="button" id="btn-start-scan">
+            <span>📷</span>
+            <span>Scan with camera</span>
+          </button>
+          <button type="button" id="btn-stop-scan" class="secondary" disabled>
+            <span>✕</span>
+            <span>Stop scanning</span>
+          </button>
+        </div>
+
+        <div id="scan-status" class="status"></div>
+
+        <div class="scan-preview" id="scan-preview" style="display:none;">
+          <video id="scanner-video"></video>
+          <div class="scan-overlay"></div>
+        </div>
+      </div>
+
+      <div id="product-panel" class="card mt-md" style="display:none;">
+        <div class="product-header">
+          <div class="product-thumb">
+            <img id="product-image" alt="Product image" />
+          </div>
+          <div class="product-meta">
+            <div class="product-title" id="product-name"></div>
+            <div class="product-sub" id="product-brand"></div>
+            <div class="product-code" id="product-code"></div>
+            <div class="mt-sm">
+              <span class="pill" id="product-source-pill"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-md">
+          <h3 style="font-size:0.9rem; margin:0 0 0.25rem;">Available prices</h3>
+          <div class="hint">Prices fetched from supermarket sites when possible; you can also override manually.</div>
+        </div>
+
+        <div id="price-grid" class="price-grid"></div>
+
+        <div class="mt-md">
+          <h3 style="font-size:0.9rem; margin:0 0 0.25rem;">Manual price override</h3>
+          <div class="hint">If online price lookup fails or seems wrong, you can enter your own price from the shelf label.</div>
+          <form id="manual-price-form" class="filters-row" style="margin-top:0.4rem;">
+            <select id="manual-store">
+              <option value="wellcome">Wellcome</option>
+              <option value="pns">PARKnSHOP</option>
+            </select>
+            <input id="manual-price" type="number" min="0" step="0.01" placeholder="Price (HKD)" required />
+            <input id="manual-qty" type="number" min="1" step="1" value="1" />
+            <button type="submit">Add to cart</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- Carts Section -->
+    <section id="screen-carts" class="section" style="display:none;">
+      <div class="card">
+        <div class="cart-section-header">
+          <h2>Store shopping carts</h2>
+          <span class="text-small">All items saved on this device only.</span>
+        </div>
+
+        <div class="store-tabs" id="store-tabs"></div>
+
+        <div id="cart-summary" class="cart-total-row mt-sm"></div>
+
+        <div id="cart-list" class="cart-list"></div>
+
+        <div class="mt-md text-right">
+          <button type="button" id="btn-clear-store" class="secondary">Clear this cart</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Settings / Info Section -->
+    <section id="screen-settings" class="section" style="display:none;">
+      <div class="card">
+        <h2>App info & tips</h2>
+        <p class="text-small">
+          This app stores everything in your browser (localStorage). Clearing your browser data will remove your products and carts.
+        </p>
+        <p class="text-small">
+          Product information is fetched via the community-driven Open Food Facts API when possible, based on the barcode.
+          Supermarket prices are looked up via their public websites, but due to technical limits (like CORS) some price lookups may fail.
+        </p>
+        <p class="text-small">
+          When in-store, scan the shelf label or barcode, update the price manually if needed, then open the corresponding store cart to follow your best prices.
+        </p>
+        <div class="mt-md">
+          <button type="button" id="btn-reset-all" class="secondary">Reset all local data</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav">
+    <div class="bottom-nav-inner">
+      <button class="nav-btn active" data-target="screen-scan">
+        <span class="icon">📷</span>
+        <span>Scan</span>
+      </button>
+      <button class="nav-btn" data-target="screen-carts">
+        <span class="icon">🛒</span>
+        <span>Carts <span id="cart-count-badge" class="badge" style="display:none;">0</span></span>
+      </button>
+      <button class="nav-btn" data-target="screen-settings">
+        <span class="icon">⚙️</span>
+        <span>Info</span>
+      </button>
+    </div>
+  </nav>
+
+  <script>
+    // --- Data Layer ---
+    const STORAGE_KEY = 'hkSupermarketScanner.v1';
+
+    const STORES = {
+      wellcome: { id: 'wellcome', name: 'Wellcome', color: '#e53935' },
+      pns: { id: 'pns', name: 'PARKnSHOP', color: '#1565c0' }
+    };
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+          return {
+            products: {}, // barcode -> product
+            carts: {
+              wellcome: { id: 'wellcome', items: [] },
+              pns: { id: 'pns', items: [] }
+            }
+          };
+        }
+        const parsed = JSON.parse(raw);
+        if (!parsed.carts) {
+          parsed.carts = {
+            wellcome: { id: 'wellcome', items: [] },
+            pns: { id: 'pns', items: [] }
+          };
+        }
+        return parsed;
+      } catch (e) {
+        console.error('Failed to load state', e);
+        return {
+          products: {},
+          carts: {
+            wellcome: { id: 'wellcome', items: [] },
+            pns: { id: 'pns', items: [] }
+          }
+        };
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {
+        console.error('Failed to save state', e);
+      }
+    }
+
+    let state = loadState();
+    let currentProduct = null; // currently displayed product
+    let activeStoreId = 'wellcome';
+    let scanning = false;
+
+    // --- DOM helpers ---
+    const $ = (id) => document.getElementById(id);
+
+    const scanStatusEl = $('scan-status');
+    const productPanelEl = $('product-panel');
+    const productNameEl = $('product-name');
+    const productBrandEl = $('product-brand');
+    const productCodeEl = $('product-code');
+    const productImageEl = $('product-image');
+    const productSourcePillEl = $('product-source-pill');
+    const priceGridEl = $('price-grid');
+    const scanPreviewEl = $('scan-preview');
+    const scannerVideoEl = $('scanner-video');
+    const cartTabsEl = $('store-tabs');
+    const cartListEl = $('cart-list');
+    const cartSummaryEl = $('cart-summary');
+    const cartCountBadgeEl = $('cart-count-badge');
+
+    function setStatus(msg, type = '') {
+      scanStatusEl.textContent = msg || '';
+      scanStatusEl.className = 'status' + (type ? ' ' + type : '');
+    }
+
+    function formatPrice(value) {
+      if (value == null || isNaN(value)) return '-';
+      return 'HK$' + Number(value).toFixed(2);
+    }
+
+    function computeCartTotals(cart) {
+      let total = 0;
+      let count = 0;
+      for (const item of cart.items) {
+        const qty = item.quantity || 1;
+        const price = item.price || 0;
+        total += qty * price;
+        count += qty;
+      }
+      return { total, count };
+    }
+
+    function updateCartBadge() {
+      let allCount = 0;
+      Object.values(state.carts).forEach((cart) => {
+        const { count } = computeCartTotals(cart);
+        allCount += count;
+      });
+      if (allCount > 0) {
+        cartCountBadgeEl.style.display = 'inline-block';
+        cartCountBadgeEl.textContent = allCount;
+      } else {
+        cartCountBadgeEl.style.display = 'none';
+      }
+    }
+
+    function renderStoreTabs() {
+      cartTabsEl.innerHTML = '';
+      Object.values(STORES).forEach((store) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = store.name;
+        btn.className = 'store-tab-button' + (store.id === activeStoreId ? ' active' : '');
+        btn.addEventListener('click', () => {
+          activeStoreId = store.id;
+          renderStoreTabs();
+          renderCart();
+        });
+        cartTabsEl.appendChild(btn);
+      });
+    }
+
+    function renderCart() {
+      const cart = state.carts[activeStoreId];
+      const { total, count } = computeCartTotals(cart);
+      if (!cart) return;
+
+      if (!cart.items.length) {
+        cartListEl.innerHTML = '<div class="empty-state">No items in this cart yet. Scan a product and add it for this store.</div>';
+        cartSummaryEl.innerHTML = '';
+      } else {
+        cartSummaryEl.innerHTML = `
+          <span>Total items: <strong>${count}</strong></span>
+          <span>Estimated total: <strong>${formatPrice(total)}</strong></span>
+        `;
+        cartListEl.innerHTML = '';
+        cart.items.forEach((item, index) => {
+          const product = state.products[item.barcode] || { name: 'Unknown item', brand: '', image: '' };
+          const row = document.createElement('div');
+          row.className = 'cart-item';
+          row.innerHTML = `
+            <div class="cart-item-thumb">
+              <img src="${product.image || ''}" alt="" onerror="this.style.display='none';" />
+            </div>
+            <div class="cart-item-body">
+              <div class="cart-item-title">${product.name || 'Unknown item'}</div>
+              <div class="cart-item-meta">
+                <span>${formatPrice(item.price)} / each</span>
+                <span class="pill ${item.source === 'manual' ? 'tag-manual' : 'tag-online'}">${item.source === 'manual' ? 'Manual price' : 'Online price'}</span>
+                <span>Barcode: ${item.barcode}</span>
+              </div>
+              <div class="cart-item-footer">
+                <div class="qty-input">
+                  <span>Qty</span>
+                  <input type="number" min="1" step="1" value="${item.quantity || 1}" data-index="${index}" class="qty-field" />
+                </div>
+                <div class="text-right" style="flex:1;">
+                  <div style="font-size:0.8rem;">Line total</div>
+                  <div style="font-weight:600;">${formatPrice((item.quantity || 1) * (item.price || 0))}</div>
+                </div>
+                <div>
+                  <button type="button" class="ghost" data-index="${index}">Remove</button>
+                </div>
+              </div>
+            </div>
+          `;
+          cartListEl.appendChild(row);
+        });
+
+        // Attach qty change / remove handlers
+        cartListEl.querySelectorAll('.qty-field').forEach((input) => {
+          input.addEventListener('change', (e) => {
+            const idx = Number(e.target.getAttribute('data-index'));
+            const val = Math.max(1, Number(e.target.value) || 1);
+            state.carts[activeStoreId].items[idx].quantity = val;
+            saveState();
+            renderCart();
+            updateCartBadge();
+          });
+        });
+
+        cartListEl.querySelectorAll('button.ghost').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            const idx = Number(e.target.getAttribute('data-index'));
+            state.carts[activeStoreId].items.splice(idx, 1);
+            saveState();
+            renderCart();
+            updateCartBadge();
+          });
+        });
+      }
+    }
+
+    function addToCart(storeId, product, price, quantity, source) {
+      const cart = state.carts[storeId];
+      if (!cart) return;
+      const existingIndex = cart.items.findIndex((i) => i.barcode === product.barcode && i.price === price);
+      if (existingIndex >= 0) {
+        cart.items[existingIndex].quantity += quantity;
+      } else {
+        cart.items.push({
+          barcode: product.barcode,
+          price: price,
+          quantity: quantity,
+          source: source || 'online'
+        });
+      }
+      saveState();
+      updateCartBadge();
+      renderCart();
+    }
+
+    // --- Product & price lookup ---
+
+    async function lookupProductByBarcode(barcode) {
+      barcode = (barcode || '').trim();
+      if (!barcode) return;
+
+      setStatus('Looking up product info…', '');
+
+      // 1. Check local cache first
+      if (state.products[barcode]) {
+        currentProduct = state.products[barcode];
+        showProduct(currentProduct, 'cached');
+        await lookupPricesForCurrentProduct();
+        return;
+      }
+
+      // 2. Try Open Food Facts API by barcode
+      try {
+        const url = `https://world.openfoodfacts.net/api/v2/product/${encodeURIComponent(barcode)}?fields=code,product_name,brands,image_url`;
+        const res = await fetch(url, {
+          headers: {
+            'User-Agent': 'HKSupermarketScanner-webapp/1.0'
+          }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.status === 1 && data.product) {
+            const p = data.product;
+            const product = {
+              barcode: barcode,
+              name: p.product_name || 'Unknown product',
+              brand: p.brands || '',
+              image: p.image_url || '',
+              lastUpdated: Date.now()
+            };
+            state.products[barcode] = product;
+            saveState();
+            currentProduct = product;
+            showProduct(product, 'api');
+            await lookupPricesForCurrentProduct();
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn('Open Food Facts lookup failed', e);
+      }
+
+      // 3. Fallback: ask user to fill in basic product info
+      setStatus('Product not found online. Please enter a name so it can be saved.', 'error');
+      askUserForManualProduct(barcode);
+    }
+
+    function askUserForManualProduct(barcode) {
+      const name = window.prompt('Product name (for your own reference):');
+      if (!name) {
+        setStatus('Barcode lookup cancelled.', 'error');
+        return;
+      }
+      const brand = window.prompt('Brand (optional):') || '';
+      const product = {
+        barcode: barcode,
+        name: name,
+        brand: brand,
+        image: '',
+        lastUpdated: Date.now()
+      };
+      state.products[barcode] = product;
+      saveState();
+      currentProduct = product;
+      showProduct(product, 'manual');
+      lookupPricesForCurrentProduct();
+    }
+
+    function showProduct(product, source) {
+      if (!product) return;
+      productPanelEl.style.display = 'block';
+      productNameEl.textContent = product.name || 'Unknown product';
+      productBrandEl.textContent = product.brand || '';
+      productCodeEl.textContent = `Barcode: ${product.barcode}`;
+      if (product.image) {
+        productImageEl.src = product.image;
+        productImageEl.style.display = '';
+      } else {
+        productImageEl.removeAttribute('src');
+        productImageEl.style.display = 'none';
+      }
+      productSourcePillEl.textContent = source === 'api' ? 'From Open Food Facts' : source === 'cached' ? 'From local cache' : 'Entered manually';
+      priceGridEl.innerHTML = '';
+    }
+
+    async function lookupPricesForCurrentProduct() {
+      if (!currentProduct) return;
+      setStatus('Looking up supermarket prices…', '');
+      priceGridEl.innerHTML = '';
+
+      // In parallel: call Wellcome & PNS
+      const [wellcomePrice, pnsPrice] = await Promise.all([
+        lookupWellcomePrice(currentProduct),
+        lookupPnsPrice(currentProduct)
+      ]);
+
+      const entries = [];
+      if (wellcomePrice) entries.push({ store: STORES.wellcome, price: wellcomePrice });
+      if (pnsPrice) entries.push({ store: STORES.pns, price: pnsPrice });
+
+      if (!entries.length) {
+        priceGridEl.innerHTML = '<div class="hint">Online price lookup failed or is blocked. Please input prices manually from shelf labels.</div>';
+        setStatus('Unable to fetch prices from supermarket sites. Use manual price input.', 'error');
+        return;
+      }
+
+      // Determine best price
+      const bestEntry = entries.reduce((best, e) => (best == null || e.price < best.price ? e : best), null);
+
+      entries.forEach((entry) => {
+        const card = document.createElement('div');
+        card.className = 'store-price-card';
+        card.innerHTML = `
+          <div class="store-name-row">
+            <span class="store-name">${entry.store.name}</span>
+            <span class="pill tag-online">Online price</span>
+          </div>
+          <div class="price-row">${formatPrice(entry.price)}</div>
+          <div class="price-note">${bestEntry && entry.store.id === bestEntry.store.id ? 'Best online price' : 'Online listing price'}</div>
+          <div class="btn-row" style="margin-top:0.25rem;">
+            <button type="button" data-store-id="${entry.store.id}" data-price="${entry.price}">
+              <span>➕</span>
+              <span>Add to ${entry.store.name} cart</span>
+            </button>
+          </div>
+        `;
+        priceGridEl.appendChild(card);
+      });
+
+      // Attach cart add handlers
+      priceGridEl.querySelectorAll('button[data-store-id]').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          const storeId = e.target.closest('button').getAttribute('data-store-id');
+          const price = Number(e.target.closest('button').getAttribute('data-price'));
+          addToCart(storeId, currentProduct, price, 1, 'online');
+          setStatus(`Added to ${STORES[storeId].name} cart.`, 'success');
+        });
+      });
+
+      setStatus('Price lookup finished.', 'success');
+    }
+
+    async function lookupWellcomePrice(product) {
+      // NOTE: There is no public, stable barcode API for Wellcome. This function
+      // performs a best-effort search by product name against their site.
+      // It may fail due to CORS, HTML structure changes, or blocking.
+      const query = encodeURIComponent(product.name || product.brand || product.barcode);
+      const url = `https://www.wellcome.com.hk/en/search?q=${query}`;
+      try {
+        const res = await fetch(url, { mode: 'cors' });
+        if (!res.ok) return null;
+        const html = await res.text();
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        // Heuristic: find first price-looking element (this selector may need to be
+        // updated if their markup changes).
+        const priceEl = doc.querySelector('[class*="price"], .price');
+        if (!priceEl) return null;
+        const text = priceEl.textContent || '';
+        const match = text.replace(/,/g, '').match(/([0-9]+(?:\.[0-9]+)?)/);
+        if (!match) return null;
+        return Number(match[1]);
+      } catch (e) {
+        console.warn('Wellcome lookup failed', e);
+        return null;
+      }
+    }
+
+    async function lookupPnsPrice(product) {
+      // Similar best-effort search for PARKnSHOP PNS eShop site. May fail due to CORS.
+      const query = encodeURIComponent(product.name || product.brand || product.barcode);
+      const url = `https://www.pns.hk/en/search?q=${query}`;
+      try {
+        const res = await fetch(url, { mode: 'cors' });
+        if (!res.ok) return null;
+        const html = await res.text();
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const priceEl = doc.querySelector('[class*="price"], .price');
+        if (!priceEl) return null;
+        const text = priceEl.textContent || '';
+        const match = text.replace(/,/g, '').match(/([0-9]+(?:\.[0-9]+)?)/);
+        if (!match) return null;
+        return Number(match[1]);
+      } catch (e) {
+        console.warn('PNS lookup failed', e);
+        return null;
+      }
+    }
+
+    // --- Barcode scanning with Quagga2 ---
+
+    function startScanning() {
+      if (scanning) return;
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        setStatus('Camera not supported in this browser. Please type the barcode manually.', 'error');
+        return;
+      }
+
+      scanning = true;
+      scanPreviewEl.style.display = 'block';
+      $('btn-start-scan').disabled = true;
+      $('btn-stop-scan').disabled = false;
+      setStatus('Point the camera at the barcode. It will stop after a successful scan.', '');
+
+      Quagga.init({
+        inputStream: {
+          type: 'LiveStream',
+          target: scannerVideoEl,
+          constraints: {
+            facingMode: 'environment'
+          }
+        },
+        decoder: {
+          readers: ['ean_reader', 'ean_8_reader', 'upc_reader', 'upc_e_reader']
+        }
+      }, function(err) {
+        if (err) {
+          console.error(err);
+          setStatus('Failed to start camera: ' + err.message, 'error');
+          scanning = false;
+          scanPreviewEl.style.display = 'none';
+          $('btn-start-scan').disabled = false;
+          $('btn-stop-scan').disabled = true;
+          return;
+        }
+        Quagga.start();
+      });
+
+      Quagga.onDetected(onBarcodeDetected);
+    }
+
+    function stopScanning() {
+      if (!scanning) return;
+      scanning = false;
+      try {
+        Quagga.offDetected(onBarcodeDetected);
+        Quagga.stop();
+      } catch (e) {
+        console.warn('Error stopping Quagga', e);
+      }
+      scanPreviewEl.style.display = 'none';
+      $('btn-start-scan').disabled = false;
+      $('btn-stop-scan').disabled = true;
+      setStatus('Camera stopped.', '');
+    }
+
+    function onBarcodeDetected(result) {
+      if (!result || !result.codeResult || !result.codeResult.code) return;
+      const code = result.codeResult.code;
+      stopScanning();
+      $('barcode-input').value = code;
+      lookupProductByBarcode(code);
+    }
+
+    // --- Navigation ---
+
+    document.querySelectorAll('.nav-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const target = btn.getAttribute('data-target');
+        if (!target) return;
+        document.querySelectorAll('.nav-btn').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('main > section').forEach((section) => {
+          section.style.display = section.id === target ? '' : 'none';
+        });
+        if (target !== 'screen-scan') {
+          stopScanning();
+        }
+      });
+    });
+
+    // --- Event wiring ---
+
+    $('barcode-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const value = $('barcode-input').value.trim();
+      if (!value) return;
+      lookupProductByBarcode(value);
+    });
+
+    $('btn-start-scan').addEventListener('click', () => {
+      startScanning();
+    });
+
+    $('btn-stop-scan').addEventListener('click', () => {
+      stopScanning();
+    });
+
+    $('manual-price-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!currentProduct) {
+        alert('Scan a product first.');
+        return;
+      }
+      const storeId = $('manual-store').value;
+      const priceValue = parseFloat($('manual-price').value);
+      const qtyValue = Math.max(1, parseInt($('manual-qty').value || '1', 10));
+      if (!priceValue || priceValue <= 0) {
+        alert('Please enter a valid price.');
+        return;
+      }
+      addToCart(storeId, currentProduct, priceValue, qtyValue, 'manual');
+      $('manual-price').value = '';
+      $('manual-qty').value = '1';
+      setStatus(`Added manual price to ${STORES[storeId].name} cart.`, 'success');
+    });
+
+    $('btn-clear-store').addEventListener('click', () => {
+      const cart = state.carts[activeStoreId];
+      if (!cart || !cart.items.length) return;
+      if (!window.confirm('Clear all items in this cart?')) return;
+      cart.items = [];
+      saveState();
+      renderCart();
+      updateCartBadge();
+    });
+
+    $('btn-reset-all').addEventListener('click', () => {
+      if (!window.confirm('This will erase all saved products and carts on this device. Continue?')) return;
+      localStorage.removeItem(STORAGE_KEY);
+      state = loadState();
+      currentProduct = null;
+      productPanelEl.style.display = 'none';
+      priceGridEl.innerHTML = '';
+      renderStoreTabs();
+      renderCart();
+      updateCartBadge();
+      setStatus('All local data reset.', '');
+    });
+
+    // --- Initial render ---
+    renderStoreTabs();
+    renderCart();
+    updateCartBadge();
+  </script>
+</body>
+</html>
