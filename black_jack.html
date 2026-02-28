@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blackjack Hi-Lo 算牌練習</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0b1724;
+      color: #f5f5f5;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 16px;
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      margin: 8px 0 4px;
+      text-align: center;
+    }
+    .subtitle {
+      font-size: 0.9rem;
+      opacity: 0.8;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 480px;
+      background: #122335;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .mode-toggle {
+      display: flex;
+      gap: 8px;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      font-size: 0.9rem;
+    }
+    .mode-toggle label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+
+    .deal-area {
+      margin-top: 4px;
+      background: #192b40;
+      border-radius: 10px;
+      padding: 12px;
+      min-height: 220px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      text-align: center;
+      cursor: pointer;
+      border: 1px dashed rgba(255, 255, 255, 0.1);
+    }
+    .deal-area-hint {
+      font-size: 0.85rem;
+      opacity: 0.75;
+      margin-top: 6px;
+    }
+
+    .card {
+      width: 120px;
+      height: 170px;
+      background: #fdfdfd;
+      border-radius: 10px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 8px 10px;
+      color: #111;
+      position: relative;
+    }
+    .card-rank-top,
+    .card-rank-bottom {
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+    .card-rank-bottom {
+      transform: rotate(180deg);
+      text-align: left;
+    }
+    .card-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2.4rem;
+    }
+    .card.red {
+      color: #b00020;
+    }
+
+    .counter-wrapper {
+      width: 100%;
+      margin-top: 10px;
+    }
+    .counter-label {
+      font-size: 0.85rem;
+      opacity: 0.8;
+      margin-bottom: 4px;
+    }
+    .counter-display {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      background: #0f1b29;
+      text-align: center;
+      font-size: 1.2rem;
+      letter-spacing: 0.2em;
+      user-select: none;
+      -webkit-user-select: none;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+    .counter-display:active {
+      background: #1a2b3e;
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 4px;
+      font-size: 0.85rem;
+    }
+    .auto-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .auto-controls input[type="number"] {
+      width: 90px;
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: none;
+      outline: none;
+      font-size: 0.85rem;
+    }
+    .button-row {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+    button {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    .btn-primary {
+      background: #1e88e5;
+      color: #fff;
+    }
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+    .btn-secondary {
+      background: #26394f;
+      color: #fff;
+    }
+    .btn-danger {
+      background: #e53935;
+      color: #fff;
+    }
+
+    .tiny-text {
+      font-size: 0.75rem;
+      opacity: 0.7;
+    }
+  </style>
+</head>
+<body>
+  <h1>Blackjack Hi-Lo 算牌訓練</h1>
+  <div class="subtitle">
+    2–6 = +1，7–9 = 0，10–A = -1。專注心算，偶爾偷看下面的 Count 驗證自己。
+  </div>
+
+  <div class="container">
+    <div class="mode-toggle">
+      <div>
+        <strong>模式：</strong>
+      </div>
+      <label>
+        <input type="radio" name="mode" value="manual" checked />
+        手動發牌（點擊訓練區）
+      </label>
+      <label>
+        <input type="radio" name="mode" value="auto" />
+        自動發牌（固定頻率）
+      </label>
+    </div>
+
+    <div id="deal-area" class="deal-area">
+      <div class="card" id="card">
+        <div class="card-rank-top" id="card-rank-top">?</div>
+        <div class="card-center" id="card-center">?</div>
+        <div class="card-rank-bottom" id="card-rank-bottom">?</div>
+      </div>
+      <div class="deal-area-hint">
+        手動模式：點擊這塊區域發下一張牌<br />
+        自動模式：設定間隔後按「開始自動發牌」
+      </div>
+    </div>
+
+    <div class="counter-wrapper">
+      <div class="counter-label">
+        當前 Count（按住顯示，放開隱藏）：
+      </div>
+      <div id="counter-display" class="counter-display">
+        ●●●
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="auto-controls">
+        <div>
+          自動模式設定：
+        </div>
+        <div>
+          <label>
+            每張牌間隔(秒)
+            <input
+              type="number"
+              id="interval-input"
+              min="0.2"
+              max="10"
+              step="0.1"
+              value="1"
+            />
+          </label>
+        </div>
+      </div>
+      <div class="button-row">
+        <button id="auto-start" class="btn-primary" disabled>
+          開始自動發牌
+        </button>
+        <button id="auto-stop" class="btn-secondary" disabled>
+          暫停
+        </button>
+        <button id="reset-btn" class="btn-danger">
+          重設
+        </button>
+      </div>
+      <div class="tiny-text">
+        提示：先在腦中維持 running count，只在覺得不確定的時候按住上面的 Count
+        來驗證。
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 牌面定義（無限牌靴：每次隨機一張）
+    const RANKS = ["2","3","4","5","6","7","8","9","10","J","Q","K","A"];
+    const SUITS = ["♠","♥","♦","♣"];
+
+    // Hi-Lo 計分
+    function getHiLoValue(rank) {
+      if (["2","3","4","5","6"].includes(rank)) return 1;
+      if (["7","8","9"].includes(rank)) return 0;
+      // 10, J, Q, K, A
+      return -1;
+    }
+
+    // 狀態
+    let runningCount = 0;
+    let autoTimer = null;
+
+    // DOM 元素
+    const cardEl = document.getElementById("card");
+    const cardRankTopEl = document.getElementById("card-rank-top");
+    const cardRankBottomEl = document.getElementById("card-rank-bottom");
+    const cardCenterEl = document.getElementById("card-center");
+    const dealAreaEl = document.getElementById("deal-area");
+    const counterDisplayEl = document.getElementById("counter-display");
+    const modeRadios = document.querySelectorAll('input[name="mode"]');
+    const intervalInputEl = document.getElementById("interval-input");
+    const autoStartBtn = document.getElementById("auto-start");
+    const autoStopBtn = document.getElementById("auto-stop");
+    const resetBtn = document.getElementById("reset-btn");
+
+    const MASK_TEXT = "●●●";
+
+    function getCurrentMode() {
+      const checked = Array.from(modeRadios).find(r => r.checked);
+      return checked ? checked.value : "manual";
+    }
+
+    function randomCard() {
+      const rank = RANKS[Math.floor(Math.random() * RANKS.length)];
+      const suit = SUITS[Math.floor(Math.random() * SUITS.length)];
+      return { rank, suit };
+    }
+
+    function renderCard(rank, suit) {
+      const isRed = suit === "♥" || suit === "♦";
+      if (isRed) {
+        cardEl.classList.add("red");
+      } else {
+        cardEl.classList.remove("red");
+      }
+      const text = rank + suit;
+      cardRankTopEl.textContent = text;
+      cardRankBottomEl.textContent = text;
+      cardCenterEl.textContent = suit;
+    }
+
+    function dealOneCard() {
+      const { rank, suit } = randomCard();
+      const value = getHiLoValue(rank);
+      runningCount += value;
+      renderCard(rank, suit);
+    }
+
+    function maskCounter() {
+      counterDisplayEl.textContent = MASK_TEXT;
+    }
+
+    function showCounter() {
+      const value = runningCount;
+      counterDisplayEl.textContent =
+        value > 0 ? "+" + value : String(value);
+    }
+
+    function startAutoDealing() {
+      const seconds = parseFloat(intervalInputEl.value);
+      if (Number.isNaN(seconds) || seconds <= 0) {
+        alert("請輸入大於 0 的發牌間隔（秒）");
+        return;
+      }
+      const intervalMs = seconds * 1000;
+
+      stopAutoDealing(); // 先確保沒有舊的 timer
+
+      autoTimer = setInterval(() => {
+        // 只有在 auto 模式才自動發牌
+        if (getCurrentMode() === "auto") {
+          dealOneCard();
+        }
+      }, intervalMs);
+
+      autoStartBtn.disabled = true;
+      autoStopBtn.disabled = false;
+    }
+
+    function stopAutoDealing() {
+      if (autoTimer !== null) {
+        clearInterval(autoTimer);
+        autoTimer = null;
+      }
+      autoStartBtn.disabled = getCurrentMode() !== "auto";
+      autoStopBtn.disabled = true;
+    }
+
+    function resetAll() {
+      runningCount = 0;
+      stopAutoDealing();
+      renderCard("?", "♠");
+      cardEl.classList.remove("red");
+      maskCounter();
+    }
+
+    // 事件綁定
+    dealAreaEl.addEventListener("click", (event) => {
+      // 避免誤觸按鈕之類的（但這裡整塊本身可點就好）
+      if (getCurrentMode() === "manual") {
+        dealOneCard();
+      }
+    });
+
+    // 按住顯示，放開隱藏（用 pointer 事件兼容滑鼠/觸控）
+    counterDisplayEl.addEventListener("pointerdown", () => {
+      showCounter();
+    });
+    counterDisplayEl.addEventListener("pointerup", () => {
+      maskCounter();
+    });
+    counterDisplayEl.addEventListener("pointerleave", () => {
+      // 手指滑出範圍也要隱藏
+      maskCounter();
+    });
+
+    // 模式切換
+    modeRadios.forEach(radio => {
+      radio.addEventListener("change", () => {
+        const mode = getCurrentMode();
+        if (mode === "auto") {
+          // 能開始自動發牌，但尚未開始
+          autoStartBtn.disabled = false;
+        } else {
+          // 切回手動時一定關閉自動發牌
+          stopAutoDealing();
+          autoStartBtn.disabled = true;
+        }
+      });
+    });
+
+    autoStartBtn.addEventListener("click", () => {
+      if (getCurrentMode() === "auto") {
+        startAutoDealing();
+      }
+    });
+
+    autoStopBtn.addEventListener("click", () => {
+      stopAutoDealing();
+    });
+
+    resetBtn.addEventListener("click", () => {
+      resetAll();
+    });
+
+    // 初始化
+    resetAll();
+  </script>
+</body>
+</html>
