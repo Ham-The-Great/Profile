@@ -3,417 +3,378 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HK Desk Dashboard</title>
+    <title>HK Desktop E-Ink Dashboard</title>
     <style>
-        /* E-Ink High-Contrast Reset */
+        /* Premium E-Ink Typography & Contrast Optimization */
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Georgia, serif;
+            color: #000000;
+            background-color: #ffffff;
         }
 
-        body {
-            background-color: #ffffff;
-            color: #000000;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        html, body {
             width: 100vw;
             height: 100vh;
             overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 12px;
+            padding: 15px;
         }
 
-        /* Fixed 1.5:1 E-Ink Aspect Ratio Container */
-        .dashboard-container {
+        /* 1.5 : 1 Fixed Aspect Ratio Frame */
+        .dashboard {
             width: 100%;
             height: 100%;
-            max-width: 1024px;
-            aspect-ratio: 1.5 / 1;
-            border: 3px solid #000000;
+            max-width: 960px;
+            max-height: 640px;
             display: grid;
-            grid-template-columns: 1fr 1.1fr 1.3fr;
-            grid-template-rows: 1fr;
-            background-color: #ffffff;
+            grid-template-columns: 1.3fr 1fr 1fr;
+            grid-template-rows: 100%;
+            column-gap: 24px;
         }
 
-        /* Common Panel Styling */
-        .panel {
-            padding: 16px;
+        .column {
+            height: 100%;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            overflow: hidden;
+            justify-content: flex-start;
         }
 
-        .panel:not(:last-child) {
-            border-right: 2px solid #000000;
+        /* Divider lines between sections */
+        .divider {
+            border-left: 1px solid #000000;
+            height: 100%;
         }
 
-        .panel-title {
-            font-size: 0.85rem;
-            font-weight: 800;
-            letter-spacing: 0.1em;
+        /* Typography Hierarchy */
+        h2 {
+            font-family: -apple-system, sans-serif;
+            font-size: 11px;
+            font-weight: 700;
             text-transform: uppercase;
-            border-bottom: 2px solid #000000;
-            padding-bottom: 4px;
+            letter-spacing: 2px;
             margin-bottom: 12px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #000000;
         }
 
-        /* Left Panel: Time & Sun */
-        .time-section {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            flex-grow: 1;
+        /* Column 1: Time, Sun, Warnings */
+        .time-module {
+            padding-bottom: 15px;
         }
 
-        .clock {
-            font-size: 3.8rem;
-            font-weight: 900;
+        #clock {
+            font-size: 64px;
+            font-weight: 300;
             line-height: 1;
-            letter-spacing: -0.03em;
-            margin-bottom: 4px;
+            letter-spacing: -2px;
+            font-variant-numeric: tabular-nums;
         }
 
-        .date {
-            font-size: 1.1rem;
+        #date {
+            font-size: 14px;
             font-weight: 600;
-            margin-bottom: 24px;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+            text-transform: uppercase;
         }
 
-        .sun-row {
+        .sun-module {
             display: flex;
-            gap: 16px;
-            border-top: 1px dashed #000000;
-            padding-top: 12px;
+            gap: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            padding-bottom: 20px;
+            border-bottom: 1px dashed #000000;
+            margin-bottom: 20px;
         }
 
-        .sun-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.95rem;
-            font-weight: 600;
-        }
-
-        .sun-item svg {
-            width: 20px;
-            height: 20px;
-            stroke: #000000;
-            fill: none;
-            stroke-width: 2;
-        }
-
-        /* Middle Panel: HKO Warnings */
-        .warning-container {
-            flex-grow: 1;
+        .warning-module {
+            flex: 1;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
         }
 
         .warning-grid {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
+            margin-top: 5px;
         }
 
-        .warning-icon {
-            width: 64px;
-            height: 64px;
+        .warning-grid img {
+            width: 46px;
+            height: 46px;
             object-fit: contain;
-            /* High contrast filter optimization for e-ink screens */
             filter: grayscale(100%) contrast(200%);
         }
 
-        .no-warning-msg {
-            font-size: 1.1rem;
+        .no-warning-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #666666;
+            padding: 10px 0;
+            font-style: italic;
+        }
+
+        /* Columns 2 & 3: Data Feeds */
+        .feed-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow: hidden;
+        }
+
+        .feed-item {
+            font-size: 12px;
+            line-height: 1.4;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .feed-item strong {
             font-weight: 700;
             text-transform: uppercase;
-            border: 2px dashed #000000;
-            padding: 16px;
-            width: 100%;
+            font-size: 11px;
+            display: block;
+            margin-bottom: 2px;
         }
 
-        /* Right Panel: Status Feeds Split */
-        .status-split {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            justify-content: space-between;
+        /* High contrast alert state for critical updates */
+        .alert-active {
+            background-color: #000000 !important;
+            color: #ffffff !important;
+            padding: 8px;
+            margin-top: 4px;
+        }
+        
+        .alert-active * {
+            background-color: #000000 !important;
+            color: #ffffff !important;
         }
 
-        .status-block {
-            height: 48%;
-            display: flex;
-            flex-direction: column;
+        .status-clear {
+            font-size: 12px;
+            color: #444444;
+            padding-top: 5px;
         }
 
-        .status-content {
-            flex-grow: 1;
-            font-size: 0.88rem;
-            font-weight: 500;
-            line-height: 1.3;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-        }
-
-        .status-line {
-            display: flex;
-            align-items: flex-start;
-            gap: 6px;
-            margin-bottom: 4px;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: #000000;
-            margin-top: 5px;
-            flex-shrink: 0;
-        }
-
-        .status-normal {
-            font-weight: 700;
-            font-size: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #000000;
-            margin-auto: 0;
-            padding-top: 8px;
-        }
-
-        .status-normal::before {
-            content: "✓";
-            font-size: 1.2rem;
-            font-weight: 900;
+        .loading-text {
+            font-size: 11px;
+            font-style: italic;
+            color: #888888;
         }
     </style>
 </head>
 <body>
 
-    <div class="dashboard-container">
-        
-        <!-- COLUMN 1: TIME & ASTRONOMY -->
-        <div class="panel">
-            <div class="panel-title">Hong Kong Time</div>
-            <div class="time-section">
-                <div class="clock" id="clock">00:00</div>
-                <div class="date" id="date">Loading...</div>
+    <div class="dashboard">
+        <div class="column">
+            <div class="time-module">
+                <div id="clock">00:00</div>
+                <div id="date">--- -- ---</div>
             </div>
-            <div class="sun-row">
-                <div class="sun-item">
-                    <!-- Sunrise Wire Icon -->
-                    <svg viewBox="0 0 24 24"><path d="M12 2v4M5.22 5.22l2.83 2.83M18.78 5.22l-2.83 2.83M2 18h20M12 18a6 6 0 0 0-6-6M18 18a6 6 0 0 0-6-6"/></svg>
-                    <span id="sunrise">--:--</span>
-                </div>
-                <div class="sun-item">
-                    <!-- Sunset Wire Icon -->
-                    <svg viewBox="0 0 24 24"><path d="M12 6v4M5.22 7.22l2.83-2.83M18.78 7.22l-2.83-2.83M2 18h20M6 18a6 6 0 0 1 12 0"/></svg>
-                    <span id="sunset">--:--</span>
+            <div class="sun-module">
+                <div>↑ <span id="sunrise">--:--</span></div>
+                <div>↓ <span id="sunset">--:--</span></div>
+            </div>
+            <div class="warning-module">
+                <h2>Alert Signals</h2>
+                <div id="warning-target" class="warning-grid">
+                    <div class="loading-text">Connecting...</div>
                 </div>
             </div>
         </div>
 
-        <!-- COLUMN 2: HKO OFFICIAL WARNINGS -->
-        <div class="panel">
-            <div class="panel-title">HKO Warnings</div>
-            <div class="warning-container" id="warning-container">
-                <div class="no-warning-msg">All Clear</div>
+        <div class="divider"></div>
+
+        <div class="column">
+            <h2>MTR Network</h2>
+            <div id="mtr-target" class="feed-container">
+                <div class="loading-text">Connecting to MTR...</div>
             </div>
         </div>
 
-        <!-- COLUMN 3: LIVE TRANSIT & TRAFFIC -->
-        <div class="panel">
-            <div class="status-split">
-                
-                <!-- MTR Status Block -->
-                <div class="status-block">
-                    <div class="panel-title">MTR Network Status</div>
-                    <div class="status-content" id="mtr-status">
-                        <div class="status-normal">Normal Service</div>
-                    </div>
-                </div>
-                
-                <!-- Road Traffic Status Block -->
-                <div class="status-block">
-                    <div class="panel-title">Live Traffic / Roads</div>
-                    <div class="status-content" id="traffic-status">
-                        <div class="status-normal">Traffic Flow Normal</div>
-                    </div>
-                </div>
+        <div class="divider"></div>
 
+        <div class="column">
+            <h2>Road Incidents</h2>
+            <div id="traffic-target" class="feed-container">
+                <div class="loading-text">Connecting to TD...</div>
             </div>
         </div>
-
     </div>
 
     <script>
-        // Update Time & Date
-        function updateClock() {
-            const now = new Date();
-            
-            // Format time
-            let hours = now.getHours().toString().padStart(2, '0');
-            let minutes = now.getMinutes().toString().padStart(2, '0');
-            document.getElementById('clock').textContent = `${hours}:${minutes}`;
-            
-            // Format date
-            const options = { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' };
-            document.getElementById('date').textContent = now.toLocaleDateString('en-HK', options);
-        }
-        setInterval(updateClock, 20000); // Update every 20 seconds
-        updateClock();
-
-        // Fetch Sunrise and Sunset via open API (Hong Kong Lat/Lon)
-        async function fetchSunTimes() {
-            try {
-                const response = await fetch('https://api.sunrise-sunset.org/json?lat=22.3193&lng=114.1694&formatted=0');
-                const data = await response.json();
-                if (data.status === 'OK') {
-                    const sunriseUTC = new Date(data.results.sunrise);
-                    const sunsetUTC = new Date(data.results.sunset);
-                    
-                    // Convert to HK Local Time options
-                    const opts = { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Hong_Kong' };
-                    document.getElementById('sunrise').textContent = sunriseUTC.toLocaleTimeString('en-HK', opts);
-                    document.getElementById('sunset').textContent = sunsetUTC.toLocaleTimeString('en-HK', opts);
-                }
-            } catch (error) {
-                console.error("Failed to fetch sun times:", error);
-            }
-        }
-
-        // Mapping official HKO API warning codes to true official static HKO web graphics
-        const hkoIconMap = {
-            "WTCSGNL1": "tc1.gif", "WTCSGNL3": "tc3.gif", 
-            "WTCSGNL8NE": "tc8ne.gif", "WTCSGNL8NW": "tc8nw.gif", "WTCSGNL8SE": "tc8se.gif", "WTCSGNL8SW": "tc8sw.gif",
-            "WTCSGNL9": "tc9.gif", "WTCSGNL10": "tc10.gif",
-            "WRAINA": "wrainr.gif", "WRAINR": "wrainm.gif", "WRAINB": "wrainb.gif", // Amber, Red, Black
-            "WTS": "wts.gif", "WL": "wlandslip.gif", "WFN": "wfrost.gif", 
-            "WCOLD": "wcold.gif", "VHOT": "vhot.gif", 
-            "WFIREY": "wfirey.gif", "WFIRER": "wfirer.gif", 
-            "WMS": "wmsms.gif", "WTCON": "wtsunami.gif"
+        // MANUALLY EDIT YOUR LINKS HERE. 
+        // These keys map directly to the official Hong Kong Observatory API return payload.
+        const HKO_ICON_MAP = {
+            "WTIGNL1":   "https://www.hko.gov.hk/en/wxinfo/dailywx/images/tc1.gif",
+            "WTIGNL3":   "https://www.hko.gov.hk/en/wxinfo/dailywx/images/tc3.gif",
+            "WTIGNL8NE": "https://www.hko.gov.hk/en/wxinfo/dailywx/images/tc8ne.gif",
+            "WTIGNL8NW": "https://www.hko.gov.hk/en/wxinfo/dailywx/images/tc8d.gif",
+            "WTIGNL8SE": "https://www.hko.gov.hk/en/wxinfo/dailywx/images/tc8se.gif",
+            "WTIGNL8SW": "https://www.hko.gov.hk/en/wxinfo/dailywx/images/tc8sw.gif",
+            "WTIGNL9":   "https://www.hko.gov.hk/en/wxinfo/dailywx/images/tc9.gif",
+            "WTIGNL10":  "https://www.hko.gov.hk/en/wxinfo/dailywx/images/tc10.gif",
+            "WRAINA":    "https://www.hko.gov.hk/en/wxinfo/dailywx/images/raina.gif",
+            "WRAINR":    "https://www.hko.gov.hk/en/wxinfo/dailywx/images/rainr.gif",
+            "WRAINB":    "https://www.hko.gov.hk/en/wxinfo/dailywx/images/rainb.gif",
+            "WTS":       "https://www.hko.gov.hk/images/wxinfo/warning/ts.gif",
+            "WTHU":      "https://www.hko.gov.hk/en/wxinfo/dailywx/images/ts.gif",
+            "WFIREY":    "https://www.hko.gov.hk/en/wxinfo/dailywx/images/firey.gif",
+            "WFIREO":    "https://www.hko.gov.hk/en/wxinfo/dailywx/images/firer.gif",
+            "WHOT":      "https://www.hko.gov.hk/en/wxinfo/dailywx/images/vhot.gif",
+            "WCOLD":     "https://www.hko.gov.hk/en/wxinfo/dailywx/images/cold.gif",
+            "WFROST":    "https://www.hko.gov.hk/en/wxinfo/dailywx/images/frost.gif",
+            "WLIP":      "https://www.hko.gov.hk/en/wxinfo/dailywx/images/landslip.gif",
+            "WMSGNL":    "https://www.hko.gov.hk/images/wxinfo/warning/sms.gif"
         };
 
-        // Fetch Real-time Weather Warnings from Hong Kong Observatory
+        // Global CORS proxy wrapper to bypass origin restrictions on client local files
+        function proxyURL(url) {
+            return `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+        }
+
+        // 1. Clock Engine
+        function updateClock() {
+            const hkTime = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Hong_Kong"}));
+            const hours = String(hkTime.getHours()).padStart(2, '0');
+            const minutes = String(hkTime.getMinutes()).padStart(2, '0');
+            document.getElementById('clock').textContent = `${hours}:${minutes}`;
+
+            const options = { weekday: 'short', month: 'short', day: 'numeric' };
+            document.getElementById('date').textContent = hkTime.toLocaleDateString('en-US', options);
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // 2. Sunrise / Sunset Ephemeris
+        async function fetchSunData() {
+            try {
+                const res = await fetch(proxyURL('https://api.sunrise-sunset.org/json?lat=22.3193&lng=114.1694&formatted=0'));
+                const data = await res.json();
+                if (data.status === 'OK') {
+                    const sunriseParsed = new Date(data.results.sunrise).toLocaleTimeString('en-US', {timeZone: 'Asia/Hong_Kong', hour12: false, hour: '2-digit', minute:'2-digit'});
+                    const sunsetParsed = new Date(data.results.sunset).toLocaleTimeString('en-US', {timeZone: 'Asia/Hong_Kong', hour12: false, hour: '2-digit', minute:'2-digit'});
+                    document.getElementById('sunrise').textContent = sunriseParsed;
+                    document.getElementById('sunset').textContent = sunsetParsed;
+                }
+            } catch (e) {
+                document.getElementById('sunrise').textContent = "--:--";
+            }
+        }
+
+        // 3. HKO Warnings Integration
         async function fetchHKOWarnings() {
-            const container = document.getElementById('warning-container');
+            const target = document.getElementById('warning-target');
             try {
-                const response = await fetch('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=warnsum&lang=en');
-                const data = await response.json();
+                const res = await fetch(proxyURL('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=warnsum&lang=en'));
+                const data = await res.json();
+                target.innerHTML = '';
                 
-                // Filter active issues
-                const activeWarnings = Object.keys(data).filter(key => data[key].actionCode !== "CANCEL");
-
-                if (activeWarnings.length === 0) {
-                    container.innerHTML = '<div class="no-warning-msg">All Clear</div>';
-                } else {
-                    let gridHtml = '<div class="warning-grid">';
-                    activeWarnings.forEach(code => {
-                        const iconFile = hkoIconMap[code];
-                        if (iconFile) {
-                            // Pointing to official HKO production image assets
-                            const imgUrl = `https://www.hko.gov.hk/img/w_icon/${iconFile}`;
-                            gridHtml += `<img src="${imgUrl}" class="warning-icon" alt="${data[code].name}" title="${data[code].name}">`;
-                        } else {
-                            // Fallback string if code mapping isn't found
-                            gridHtml += `<div style="font-size:0.8rem; font-weight:700; border:1px solid #000; padding:4px;">${data[code].name}</div>`;
-                        }
-                    });
-                    gridHtml += '</div>';
-                    container.innerHTML = gridHtml;
+                const activeCodes = Object.keys(data);
+                if (activeCodes.length === 0) {
+                    target.innerHTML = '<div class="no-warning-label">No Active Warnings</div>';
+                    return;
                 }
-            } catch (error) {
-                container.innerHTML = '<div style="font-size:0.8rem;">Warning Data Unavailable</div>';
-            }
-        }
 
-        // Fetch Integrated Traffic and MTR Alerts via Data.gov.hk Unified Special Traffic Feed
-        async function fetchTransitStatus() {
-            const mtrContainer = document.getElementById('mtr-status');
-            const trafficContainer = document.getElementById('traffic-status');
-
-            try {
-                // Fetching the cross-origin friendly parsed JSON output from the government's official RSS system
-                const response = await fetch('https://api.data.gov.hk/v1/filter?url=https%3A%2F%2Ftis.hd.gov.hk%2Fede%2Fsptn_dis_eng.xml');
-                const data = await response.json();
-                
-                let mtrIncidents = [];
-                let roadIncidents = [];
-
-                // Standard parser structure for the converted XML array format
-                if (data && data.record) {
-                    const records = Array.isArray(data.record) ? data.record : [data.record];
+                activeCodes.forEach(code => {
+                    const item = data[code];
+                    const img = document.createElement('img');
+                    // Look up mapping logic or fallback to explicit key
+                    const manualSrc = HKO_ICON_MAP[item.code];
                     
-                    records.forEach(rec => {
-                        const contentText = rec.content || "";
-                        
-                        // Parse logic assigning notices natively via keyword checking
-                        if (contentText.toUpperCase().includes("MTR") || contentText.toUpperCase().includes("TRAIN") || contentText.toUpperCase().includes("RAILWAY")) {
-                            mtrIncidents.push(contentText);
-                        } else {
-                            roadIncidents.push(contentText);
-                        }
-                    });
-                }
-
-                // Render MTR Box Content
-                if (mtrIncidents.length === 0) {
-                    mtrContainer.innerHTML = '<div class="status-normal">Normal Service</div>';
-                } else {
-                    let html = '';
-                    mtrIncidents.slice(0, 3).forEach(msg => { // Limit to 3 items to fit without scrolling
-                        // Clean up strings slightly for tiny screen display readability
-                        const snippet = msg.length > 85 ? msg.substring(0, 85) + '...' : msg;
-                        html += `<div class="status-line"><div class="status-dot"></div><div>${snippet}</div></div>`;
-                    });
-                    mtrContainer.innerHTML = html;
-                }
-
-                // Render Road Traffic Box Content
-                if (roadIncidents.length === 0) {
-                    trafficContainer.innerHTML = '<div class="status-normal">Traffic Flow Normal</div>';
-                } else {
-                    let html = '';
-                    roadIncidents.slice(0, 3).forEach(msg => {
-                        const snippet = msg.length > 85 ? msg.substring(0, 85) + '...' : msg;
-                        html += `<div class="status-line"><div class="status-dot"></div><div>${snippet}</div></div>`;
-                    });
-                    trafficContainer.innerHTML = html;
-                }
-
-            } catch (error) {
-                mtrContainer.innerHTML = '<div style="color:#555;">Status Unreachable</div>';
-                trafficContainer.innerHTML = '<div style="color:#555;">Status Unreachable</div>';
+                    img.src = manualSrc ? manualSrc : `https://www.hko.gov.hk/images/wxinfo/warning/${item.code.toLowerCase()}.gif`;
+                    img.alt = item.name;
+                    img.title = item.name;
+                    target.appendChild(img);
+                });
+            } catch (e) {
+                target.innerHTML = '<div class="loading-text">Data error</div>';
             }
         }
 
-        // Initialization and Refresh Loops
-        function refreshData() {
-            fetchSunTimes();
-            fetchHKOWarnings();
-            fetchTransitStatus();
+        // 4. MTR System Diagnostics
+        async function fetchMTRStatus() {
+            const target = document.getElementById('mtr-target');
+            try {
+                const res = await fetch(proxyURL('https://rt.data.gov.hk/v1/transport/mtr/serviceStatus.php'));
+                const data = await res.json();
+                target.innerHTML = '';
+
+                if (data.status === 1 && (!data.lines || Object.keys(data.lines).length === 0)) {
+                    target.innerHTML = '<div class="status-clear">Normal operation across all lines.</div>';
+                    return;
+                }
+
+                let delays = 0;
+                for (const [line, info] of Object.entries(data.lines || {})) {
+                    if (info.status && info.status !== 'NORMAL') {
+                        delays++;
+                        const el = document.createElement('div');
+                        el.className = 'feed-item alert-active';
+                        el.innerHTML = `<strong>${line} Line</strong>${info.text_en}`;
+                        target.appendChild(el);
+                    }
+                }
+
+                if (delays === 0) {
+                    target.innerHTML = '<div class="status-clear">Normal operation across all lines.</div>';
+                }
+            } catch (e) {
+                target.innerHTML = '<div class="loading-text">Unable to reach MTR API</div>';
+            }
         }
 
-        // Initial Executions
-        refreshData();
+        // 5. Road Network Incidents
+        async function fetchTrafficIncidents() {
+            const target = document.getElementById('traffic-target');
+            try {
+                const res = await fetch(proxyURL('https://resource.data.gov.hk/te/traffic-incident.json'));
+                const data = await res.json();
+                target.innerHTML = '';
 
-        // Refresh live data feeds every 10 minutes to respect server polling limits and prevent excessive e-ink ghosting flashing updates.
-        setInterval(refreshData, 600000);
+                const incidents = data.incidents || [];
+                if (incidents.length === 0) {
+                    target.innerHTML = '<div class="status-clear">No major road closures reported.</div>';
+                    return;
+                }
+
+                // Render cap to cleanly avoid window overflow
+                const renderLimit = Math.min(incidents.length, 4);
+                for (let i = 0; i < renderLimit; i++) {
+                    const item = incidents[i];
+                    const el = document.createElement('div');
+                    el.className = 'feed-item';
+                    
+                    let content = item.trafficNotices[0].noticeContentEN;
+                    if (content.length > 110) content = content.substring(0, 107) + '...';
+
+                    el.innerHTML = `<strong>${item.region || 'Alert'}</strong>${content}`;
+                    target.appendChild(el);
+                }
+            } catch (e) {
+                target.innerHTML = '<div class="loading-text">Unable to reach Traffic API</div>';
+            }
+        }
+
+        // Orchestration Loop
+        function mainLoop() {
+            fetchSunData();
+            fetchHKOWarnings();
+            fetchMTRStatus();
+            fetchTrafficIncidents();
+        }
+
+        mainLoop();
+        // Sync interval configured to 5 minutes
+        setInterval(mainLoop, 300000);
     </script>
 </body>
 </html>
