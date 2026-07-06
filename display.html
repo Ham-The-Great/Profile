@@ -336,12 +336,14 @@
                 const data = await res.json();
                 target.innerHTML = '';
                 
-                const activeCodes = Object.keys(data);
+                // Filter out keys where actionCode is CANCEL
+                const activeCodes = Object.keys(data).filter(code => data[code].actionCode !== 'CANCEL');
+                
                 if (activeCodes.length === 0) {
                     target.innerHTML = '<div class="no-warning-banner">No Active Signals</div>';
                     return;
                 }
-
+        
                 activeCodes.forEach(code => {
                     const item = data[code];
                     const img = document.createElement('img');
