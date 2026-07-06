@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HK Desktop E-Ink Dashboard</title>
+    <title>Sleek HK Desk Dashboard</title>
     <style>
-        /* Premium E-Ink Typography & Contrast Optimization */
+        /* Editorial Premium E-Ink Styling */
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Georgia, serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             color: #000000;
             background-color: #ffffff;
         }
@@ -22,19 +22,18 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 15px;
+            padding: 24px;
         }
 
-        /* 1.5 : 1 Fixed Aspect Ratio Frame */
+        /* 1.5 : 1 Fixed Aspect Ratio Compact Workspace Frame */
         .dashboard {
             width: 100%;
             height: 100%;
-            max-width: 960px;
-            max-height: 640px;
+            max-width: 900px;
+            max-height: 600px;
             display: grid;
-            grid-template-columns: 1.3fr 1fr 1fr;
+            grid-template-columns: 1.2fr auto 1.1fr auto 1.3fr;
             grid-template-rows: 100%;
-            column-gap: 24px;
         }
 
         .column {
@@ -44,175 +43,217 @@
             justify-content: flex-start;
         }
 
-        /* Divider lines between sections */
-        .divider {
-            border-left: 1px solid #000000;
+        /* Pure structural hair-line dividers */
+        .divider-vertical {
+            width: 1px;
+            background-color: #000000;
             height: 100%;
+            margin: 0 24px;
         }
 
-        /* Typography Hierarchy */
+        .divider-horizontal {
+            border-bottom: 1px solid #000000;
+            width: 100%;
+            margin: 16px 0;
+        }
+
+        .divider-dashed {
+            border-bottom: 1px dashed #000000;
+            width: 100%;
+            margin: 16px 0;
+        }
+
+        /* Section Header Typography */
         h2 {
-            font-family: -apple-system, sans-serif;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 2px;
             margin-bottom: 12px;
-            padding-bottom: 6px;
-            border-bottom: 1px solid #000000;
+            color: #000000;
         }
 
-        /* Column 1: Time, Sun, Warnings */
-        .time-module {
-            padding-bottom: 15px;
+        /* Column 1: Time, Date & Ambient Weather Stack */
+        .time-group {
+            display: flex;
+            flex-direction: column;
         }
 
         #clock {
-            font-size: 64px;
-            font-weight: 300;
-            line-height: 1;
-            letter-spacing: -2px;
+            font-size: 76px;
+            font-weight: 200;
+            line-height: 0.95;
+            letter-spacing: -3px;
             font-variant-numeric: tabular-nums;
         }
 
         #date {
-            font-size: 14px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            margin-top: 2px;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-top: 6px;
             text-transform: uppercase;
         }
 
-        .sun-module {
-            display: flex;
-            gap: 20px;
-            font-size: 12px;
-            font-weight: 500;
-            padding-bottom: 20px;
-            border-bottom: 1px dashed #000000;
-            margin-bottom: 20px;
-        }
-
-        .warning-module {
-            flex: 1;
+        .weather-vertical {
             display: flex;
             flex-direction: column;
+            gap: 2px;
+            margin: 4px 0;
         }
 
+        #weather-temp {
+            font-size: 42px;
+            font-weight: 300;
+            line-height: 1;
+            letter-spacing: -1px;
+        }
+
+        #weather-humidity {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #555555;
+        }
+
+        .sun-row {
+            display: flex;
+            gap: 24px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* Column 2: HKO Warning Signals & Holiday Countdown Stack */
         .warning-grid {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
-            margin-top: 5px;
+            min-height: 52px;
         }
 
         .warning-grid img {
-            width: 46px;
-            height: 46px;
+            width: 48px;
+            height: 48px;
             object-fit: contain;
             filter: grayscale(100%) contrast(200%);
         }
 
-        .no-warning-label {
+        .no-warning-banner {
             font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            color: #666666;
-            padding: 10px 0;
+            color: #777777;
             font-style: italic;
+            padding-top: 2px;
         }
 
-        /* Columns 2 & 3: Data Feeds */
-        .feed-container {
+        .holiday-vertical {
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            overflow: hidden;
-        }
-
-        .feed-item {
-            font-size: 12px;
-            line-height: 1.4;
-            padding: 8px 0;
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        .feed-item strong {
-            font-weight: 700;
-            text-transform: uppercase;
-            font-size: 11px;
-            display: block;
-            margin-bottom: 2px;
-        }
-
-        /* High contrast alert state for critical updates */
-        .alert-active {
-            background-color: #000000 !important;
-            color: #ffffff !important;
-            padding: 8px;
             margin-top: 4px;
         }
-        
-        .alert-active * {
-            background-color: #000000 !important;
-            color: #ffffff !important;
+
+        #holiday-days {
+            font-size: 42px;
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: -1px;
         }
 
-        .status-clear {
-            font-size: 12px;
-            color: #444444;
-            padding-top: 5px;
-        }
-
-        .loading-text {
+        #holiday-name {
             font-size: 11px;
-            font-style: italic;
-            color: #888888;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #555555;
+            margin-top: 4px;
+            line-height: 1.3;
+        }
+
+        /* Column 3: Calendar Matrix Layout */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            row-gap: 10px;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .calendar-day-label {
+            font-weight: 700;
+            font-size: 10px;
+            text-transform: uppercase;
+            color: #666666;
+            margin-bottom: 4px;
+        }
+
+        .calendar-cell {
+            padding: 5px 0;
+            font-variant-numeric: tabular-nums;
+            font-weight: 500;
+        }
+
+        .calendar-current-day {
+            background-color: #000000;
+            color: #ffffff;
+            font-weight: 700;
+            border-radius: 3px;
         }
     </style>
 </head>
 <body>
 
     <div class="dashboard">
-        <div class="column">
-            <div class="time-module">
+        <div class="column" style="justify-content: space-between;">
+            <div class="time-group">
                 <div id="clock">00:00</div>
                 <div id="date">--- -- ---</div>
             </div>
-            <div class="sun-module">
+            
+            <div class="divider-horizontal"></div>
+            
+            <div class="weather-vertical">
+                <div id="weather-temp">--°C</div>
+                <div id="weather-humidity">--% RH</div>
+            </div>
+
+            <div class="divider-horizontal"></div>
+
+            <div class="sun-row">
                 <div>↑ <span id="sunrise">--:--</span></div>
                 <div>↓ <span id="sunset">--:--</span></div>
             </div>
-            <div class="warning-module">
-                <h2>Alert Signals</h2>
-                <div id="warning-target" class="warning-grid">
-                    <div class="loading-text">Connecting...</div>
+        </div>
+
+        <div class="divider-vertical"></div>
+
+        <div class="column">
+            <h2>Alert Signals</h2>
+            <div id="warning-target" class="warning-grid">
+                <div class="no-warning-banner">Connecting...</div>
+            </div>
+
+            <div class="divider-dashed" style="margin-top: auto;"></div>
+
+            <h2>Next Holiday</h2>
+            <div class="holiday-vertical">
+                <div id="holiday-days">--</div>
+                <div id="holiday-name">Calculating...</div>
+            </div>
+        </div>
+
+        <div class="divider-vertical"></div>
+
+        <div class="column">
+            <h2 id="calendar-month-year">Calendar</h2>
+            <div class="calendar-grid" id="calendar-days-target">
                 </div>
-            </div>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="column">
-            <h2>MTR Network</h2>
-            <div id="mtr-target" class="feed-container">
-                <div class="loading-text">Connecting to MTR...</div>
-            </div>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="column">
-            <h2>Road Incidents</h2>
-            <div id="traffic-target" class="feed-container">
-                <div class="loading-text">Connecting to TD...</div>
-            </div>
         </div>
     </div>
 
     <script>
-        // MANUALLY EDIT YOUR LINKS HERE. 
-        // These keys map directly to the official Hong Kong Observatory API return payload.
+        // Official HKO API Map Link Lookup Array
         const HKO_ICON_MAP = {
             "WTIGNL1":   "https://www.hko.gov.hk/en/wxinfo/dailywx/images/tc1.gif",
             "WTIGNL3":   "https://www.hko.gov.hk/en/wxinfo/dailywx/images/tc3.gif",
@@ -225,7 +266,7 @@
             "WRAINA":    "https://www.hko.gov.hk/en/wxinfo/dailywx/images/raina.gif",
             "WRAINR":    "https://www.hko.gov.hk/en/wxinfo/dailywx/images/rainr.gif",
             "WRAINB":    "https://www.hko.gov.hk/en/wxinfo/dailywx/images/rainb.gif",
-            "WTS":       "https://www.hko.gov.hk/images/wxinfo/warning/ts.gif",
+            "WTS":       "https://www.hko.gov.hk/en/wxinfo/dailywx/images/ts.gif",
             "WTHU":      "https://www.hko.gov.hk/en/wxinfo/dailywx/images/ts.gif",
             "WFIREY":    "https://www.hko.gov.hk/en/wxinfo/dailywx/images/firey.gif",
             "WFIREO":    "https://www.hko.gov.hk/en/wxinfo/dailywx/images/firer.gif",
@@ -236,14 +277,31 @@
             "WMSGNL":    "https://www.hko.gov.hk/images/wxinfo/warning/sms.gif"
         };
 
-        // Global CORS proxy wrapper to bypass origin restrictions on client local files
-        function proxyURL(url) {
-            return `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
-        }
+        // Standardized 2026 Hong Kong General Holidays Dataset
+        const HK_HOLIDAYS_2026 = [
+            { name: "New Year's Day", date: "2026-01-01" },
+            { name: "Lunar New Year's Day", date: "2026-02-17" },
+            { name: "Second Day of Lunar New Year", date: "2026-02-18" },
+            { name: "Third Day of Lunar New Year", date: "2026-02-19" },
+            { name: "Good Friday", date: "2026-04-03" },
+            { name: "Day following Good Friday", date: "2026-04-04" },
+            { name: "Day following Ching Ming Festival", date: "2026-04-06" },
+            { name: "Day following Easter Monday", date: "2026-04-07" },
+            { name: "Labour Day", date: "2026-05-01" },
+            { name: "Day following Birthday of the Buddha", date: "2026-05-25" },
+            { name: "Tuen Ng Festival", date: "2026-06-19" },
+            { name: "HKSAR Establishment Day", date: "2026-07-01" },
+            { name: "Day following Chinese Mid-Autumn Festival", date: "2026-09-26" },
+            { name: "National Day", date: "2026-10-01" },
+            { name: "Day following Chung Yeung Festival", date: "2026-10-19" },
+            { name: "Christmas Day", date: "2026-12-25" },
+            { name: "First weekday after Christmas Day", date: "2026-12-26" }
+        ];
 
         // 1. Clock Engine
         function updateClock() {
             const hkTime = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Hong_Kong"}));
+            
             const hours = String(hkTime.getHours()).padStart(2, '0');
             const minutes = String(hkTime.getMinutes()).padStart(2, '0');
             document.getElementById('clock').textContent = `${hours}:${minutes}`;
@@ -257,7 +315,7 @@
         // 2. Sunrise / Sunset Ephemeris
         async function fetchSunData() {
             try {
-                const res = await fetch(proxyURL('https://api.sunrise-sunset.org/json?lat=22.3193&lng=114.1694&formatted=0'));
+                const res = await fetch('https://api.sunrise-sunset.org/json?lat=22.3193&lng=114.1694&formatted=0');
                 const data = await res.json();
                 if (data.status === 'OK') {
                     const sunriseParsed = new Date(data.results.sunrise).toLocaleTimeString('en-US', {timeZone: 'Asia/Hong_Kong', hour12: false, hour: '2-digit', minute:'2-digit'});
@@ -270,111 +328,144 @@
             }
         }
 
-        // 3. HKO Warnings Integration
+        // 3. Direct Native HKO Signals Feed (CORS Native Support Verified)
         async function fetchHKOWarnings() {
             const target = document.getElementById('warning-target');
             try {
-                const res = await fetch(proxyURL('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=warnsum&lang=en'));
+                const res = await fetch('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=warnsum&lang=en');
                 const data = await res.json();
                 target.innerHTML = '';
                 
                 const activeCodes = Object.keys(data);
                 if (activeCodes.length === 0) {
-                    target.innerHTML = '<div class="no-warning-label">No Active Warnings</div>';
+                    target.innerHTML = '<div class="no-warning-banner">No Active Signals</div>';
                     return;
                 }
 
                 activeCodes.forEach(code => {
                     const item = data[code];
                     const img = document.createElement('img');
-                    // Look up mapping logic or fallback to explicit key
                     const manualSrc = HKO_ICON_MAP[item.code];
                     
                     img.src = manualSrc ? manualSrc : `https://www.hko.gov.hk/images/wxinfo/warning/${item.code.toLowerCase()}.gif`;
                     img.alt = item.name;
-                    img.title = item.name;
                     target.appendChild(img);
                 });
             } catch (e) {
-                target.innerHTML = '<div class="loading-text">Data error</div>';
+                target.innerHTML = '<div class="no-warning-banner">Signals Off</div>';
             }
         }
 
-        // 4. MTR System Diagnostics
-        async function fetchMTRStatus() {
-            const target = document.getElementById('mtr-target');
+        // 4. HKO Real-Time Temperature & Humidity Feed
+        async function fetchCurrentWeather() {
             try {
-                const res = await fetch(proxyURL('https://rt.data.gov.hk/v1/transport/mtr/serviceStatus.php'));
+                const res = await fetch('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=en');
                 const data = await res.json();
-                target.innerHTML = '';
+                
+                // Isolating the central Hong Kong Observatory HQ ground station indices
+                const hkoTempObj = data.temperature.data.find(item => item.place === "Hong Kong Observatory");
+                const temp = hkoTempObj ? hkoTempObj.value : data.temperature.data[0].value;
+                const humidity = data.humidity.data[0].value;
 
-                if (data.status === 1 && (!data.lines || Object.keys(data.lines).length === 0)) {
-                    target.innerHTML = '<div class="status-clear">Normal operation across all lines.</div>';
-                    return;
-                }
-
-                let delays = 0;
-                for (const [line, info] of Object.entries(data.lines || {})) {
-                    if (info.status && info.status !== 'NORMAL') {
-                        delays++;
-                        const el = document.createElement('div');
-                        el.className = 'feed-item alert-active';
-                        el.innerHTML = `<strong>${line} Line</strong>${info.text_en}`;
-                        target.appendChild(el);
-                    }
-                }
-
-                if (delays === 0) {
-                    target.innerHTML = '<div class="status-clear">Normal operation across all lines.</div>';
-                }
+                document.getElementById('weather-temp').textContent = `${temp}°C`;
+                document.getElementById('weather-humidity').textContent = `${humidity}% RH`;
             } catch (e) {
-                target.innerHTML = '<div class="loading-text">Unable to reach MTR API</div>';
+                document.getElementById('weather-temp').textContent = "--°C";
+                document.getElementById('weather-humidity').textContent = "--% RH";
             }
         }
 
-        // 5. Road Network Incidents
-        async function fetchTrafficIncidents() {
-            const target = document.getElementById('traffic-target');
-            try {
-                const res = await fetch(proxyURL('https://resource.data.gov.hk/te/traffic-incident.json'));
-                const data = await res.json();
-                target.innerHTML = '';
+        // 5. Offline Resilient Holiday Countdown Engine
+        function updateHolidayCountdown() {
+            const hkTime = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Hong_Kong"}));
+            const todayNormalized = new Date(hkTime.getFullYear(), hkTime.getMonth(), hkTime.getDate());
 
-                const incidents = data.incidents || [];
-                if (incidents.length === 0) {
-                    target.innerHTML = '<div class="status-clear">No major road closures reported.</div>';
-                    return;
+            let nextHoliday = null;
+            let daysRemaining = Infinity;
+
+            for (const holiday of HK_HOLIDAYS_2026) {
+                const parts = holiday.date.split('-');
+                const holidayDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                const diffTime = holidayDate - todayNormalized;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                if (diffDays >= 0 && diffDays < daysRemaining) {
+                    daysRemaining = diffDays;
+                    nextHoliday = holiday;
                 }
+            }
 
-                // Render cap to cleanly avoid window overflow
-                const renderLimit = Math.min(incidents.length, 4);
-                for (let i = 0; i < renderLimit; i++) {
-                    const item = incidents[i];
-                    const el = document.createElement('div');
-                    el.className = 'feed-item';
-                    
-                    let content = item.trafficNotices[0].noticeContentEN;
-                    if (content.length > 110) content = content.substring(0, 107) + '...';
+            const targetDays = document.getElementById('holiday-days');
+            const targetName = document.getElementById('holiday-name');
 
-                    el.innerHTML = `<strong>${item.region || 'Alert'}</strong>${content}`;
-                    target.appendChild(el);
+            if (nextHoliday) {
+                targetName.textContent = nextHoliday.name;
+                if (daysRemaining === 0) {
+                    targetDays.textContent = "TODAY";
+                } else if (daysRemaining === 1) {
+                    targetDays.textContent = "1 DAY";
+                } else {
+                    targetDays.textContent = `${daysRemaining} DAYS`;
                 }
-            } catch (e) {
-                target.innerHTML = '<div class="loading-text">Unable to reach Traffic API</div>';
+            } else {
+                targetName.textContent = "End of Year Cycle";
+                targetDays.textContent = "--";
             }
         }
 
-        // Orchestration Loop
-        function mainLoop() {
+        // 6. Programmatic Monthly Calendar Constructor
+        function buildCalendar() {
+            const hkTime = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Hong_Kong"}));
+            const currentYear = hkTime.getFullYear();
+            const currentMonth = hkTime.getMonth();
+            const currentDay = hkTime.getDate();
+
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            document.getElementById('calendar-month-year').textContent = `${monthNames[currentMonth]} ${currentYear}`;
+
+            const target = document.getElementById('calendar-days-target');
+            target.innerHTML = '';
+
+            const labels = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+            labels.forEach(l => {
+                const div = document.createElement('div');
+                div.className = 'calendar-day-label';
+                div.textContent = l;
+                target.appendChild(div);
+            });
+
+            const firstDayIndex = new Date(currentYear, currentMonth, 1).getDay();
+            const totalDays = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+            for (let i = 0; i < firstDayIndex; i++) {
+                const emptyCell = document.createElement('div');
+                target.appendChild(emptyCell);
+            }
+
+            for (let day = 1; day <= totalDays; day++) {
+                const cell = document.createElement('div');
+                cell.className = 'calendar-cell';
+                cell.textContent = day;
+
+                if (day === currentDay) {
+                    cell.className += ' calendar-current-day';
+                }
+                target.appendChild(cell);
+            }
+        }
+
+        // Master Sync Engine
+        function masterSync() {
             fetchSunData();
             fetchHKOWarnings();
-            fetchMTRStatus();
-            fetchTrafficIncidents();
+            fetchCurrentWeather();
+            updateHolidayCountdown();
+            buildCalendar();
         }
 
-        mainLoop();
-        // Sync interval configured to 5 minutes
-        setInterval(mainLoop, 300000);
+        masterSync();
+        // Synchronization intervals mapped out safely to every 10 minutes
+        setInterval(masterSync, 600000);
     </script>
 </body>
 </html>
