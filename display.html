@@ -3,165 +3,98 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HK Desk Dashboard v3</title>
+  <title>HK Desk Dashboard v4</title>
   <style>
-    :root {
-      --bg: #f6f6f6;
-      --card: #ffffff;
-      --text: #111111;
-      --muted: #666666;
-      --line: #d8d8d8;
-      --radius: 10px;
-      --shadow: none;
-    }
     * { box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+    html, body { width: 100%; height: 100%; margin: 0; padding: 0; }
     body {
-      font-family: "Noto Sans", "Segoe UI", Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #ffffff;
+      color: #111111;
       -webkit-text-size-adjust: 100%;
+      overflow: hidden;
     }
     .app {
       width: 100vw;
       height: 100vh;
-      padding: 10px;
+      padding: 8px;
       display: grid;
-      grid-template-rows: 1.05fr 1fr 1fr;
-      gap: 10px;
+      grid-template-rows: 0.9fr 1fr 1fr;
+      gap: 6px;
     }
+    .row { display: grid; gap: 6px; }
+    .row-top { grid-template-columns: 1.3fr 1fr 1.2fr; }
+    .row-mid { grid-template-columns: 1fr 1fr 1fr; }
+    .row-bottom { grid-template-columns: 1fr 1fr 1fr; }
     .panel {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 10px;
+      border: 1px solid #e1e1e1;
+      border-radius: 10px;
+      padding: 8px;
       min-width: 0;
       min-height: 0;
     }
-    .top {
-      display: grid;
-      grid-template-columns: 1.3fr 0.9fr 1.2fr;
-      gap: 10px;
-    }
-    .mid, .bottom {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 10px;
-    }
     .title {
-      margin: 0 0 8px;
+      margin: 0 0 6px;
       font-size: 11px;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      color: var(--muted);
-      font-weight: 700;
+      color: #777777;
+      font-weight: 600;
     }
     .clock {
-      font-size: min(9vh, 56px);
+      font-size: min(8vh, 52px);
       line-height: 0.95;
       font-weight: 700;
       font-variant-numeric: tabular-nums;
-      margin: 2px 0 6px;
+      margin: 2px 0 4px;
       white-space: nowrap;
     }
-    .date {
-      font-size: 14px;
-      color: var(--muted);
-    }
-    .meta-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      height: calc(100% - 22px);
-    }
+    .date { font-size: 13px; color: #555555; }
+    .meta-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
     .meta-box {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 8px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      min-width: 0;
-    }
-    .meta-label {
-      font-size: 10px;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-    }
-    .meta-value {
-      font-size: 21px;
-      font-weight: 700;
-      margin-top: 4px;
-      font-variant-numeric: tabular-nums;
-      white-space: nowrap;
-    }
-    .weather-main {
-      display: grid;
-      grid-template-rows: auto 1fr;
-      height: 100%;
-    }
-    .temp {
-      font-size: 34px;
-      font-weight: 700;
-      line-height: 1;
-      margin-bottom: 6px;
-      font-variant-numeric: tabular-nums;
-    }
-    .small-list {
-      display: grid;
-      gap: 6px;
-      font-size: 13px;
-      color: var(--text);
-      align-content: start;
-    }
-    .muted { color: var(--muted); }
-    .warning-wrap {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 8px;
-      height: calc(100% - 20px);
-      align-content: start;
-    }
-    .warning-tile {
-      border: 1px solid var(--line);
+      border: 1px solid #e1e1e1;
       border-radius: 8px;
       padding: 6px;
       display: flex;
       flex-direction: column;
+      justify-content: center;
+      min-width: 0;
+    }
+    .meta-label { font-size: 10px; color: #777777; text-transform: uppercase; letter-spacing: 0.06em; }
+    .meta-value { font-size: 18px; font-weight: 600; margin-top: 3px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .temp { font-size: 32px; font-weight: 700; line-height: 1; margin-bottom: 4px; font-variant-numeric: tabular-nums; }
+    .small-list { display: grid; gap: 3px; font-size: 13px; color: #222222; }
+    .muted { color: #777777; }
+    .warning-wrap { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+    .warning-tile {
+      border: 1px solid #e1e1e1;
+      border-radius: 8px;
+      padding: 4px;
+      display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 4px;
+      gap: 3px;
       min-height: 0;
       text-align: center;
     }
     .warning-tile img {
-      width: 36px;
-      height: 36px;
+      width: 30px;
+      height: 30px;
       object-fit: contain;
       image-rendering: -webkit-optimize-contrast;
     }
-    .warning-text {
-      font-size: 10px;
-      line-height: 1.15;
-      max-height: 2.3em;
-      overflow: hidden;
-    }
-    .list {
-      display: grid;
-      gap: 6px;
-      font-size: 13px;
-      align-content: start;
-    }
-    .row {
+    .warning-text { font-size: 10px; line-height: 1.15; max-height: 2.3em; overflow: hidden; }
+    .stack { display: grid; gap: 4px; font-size: 12px; }
+    .row-line {
       display: flex;
       justify-content: space-between;
-      gap: 8px;
+      gap: 6px;
       padding: 2px 0;
-      font-size: 13px;
+      font-size: 12px;
       min-width: 0;
     }
-    .row span:last-child, .row strong:last-child {
+    .row-line span:last-child, .row-line strong:last-child {
       text-align: right;
       max-width: 60%;
       overflow: hidden;
@@ -172,48 +105,33 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      border: 1px solid var(--line);
+      border: 1px solid #e1e1e1;
       border-radius: 999px;
-      padding: 5px 8px;
-      font-size: 12px;
+      padding: 4px 7px;
+      font-size: 11px;
       white-space: nowrap;
     }
-    .stack {
-      display: grid;
-      gap: 6px;
-      align-content: start;
-      height: calc(100% - 20px);
-    }
     .note {
-      border: 1px solid var(--line);
+      border: 1px solid #e1e1e1;
       border-radius: 8px;
-      padding: 8px;
-      font-size: 12px;
+      padding: 5px;
+      font-size: 11px;
       line-height: 1.25;
       min-height: 0;
       overflow: hidden;
     }
     .footer {
       position: absolute;
-      right: 12px;
-      bottom: 8px;
+      right: 8px;
+      bottom: 4px;
       font-size: 10px;
-      color: var(--muted);
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #111111;
-        --card: #1a1a1a;
-        --text: #efefef;
-        --muted: #b8b8b8;
-        --line: #343434;
-      }
+      color: #999999;
     }
   </style>
 </head>
 <body>
   <div class="app">
-    <section class="top">
+    <section class="row row-top">
       <article class="panel">
         <div class="title">Hong Kong time</div>
         <div class="clock" id="clock">--:--</div>
@@ -238,11 +156,9 @@
         </div>
       </article>
 
-      <article class="panel weather-main">
-        <div>
-          <div class="title">Weather now</div>
-          <div class="temp" id="tempNow">--°C</div>
-        </div>
+      <article class="panel">
+        <div class="title">Weather now</div>
+        <div class="temp" id="tempNow">--°C</div>
         <div class="small-list">
           <div id="humidityNow">Humidity --%</div>
           <div id="rainNow">Rainfall -- mm</div>
@@ -252,42 +168,42 @@
       </article>
     </section>
 
-    <section class="mid">
+    <section class="row row-mid">
       <article class="panel">
-        <div class="title">Warnings</div>
+        <div class="title">HKO warnings</div>
         <div class="warning-wrap" id="warningWrap">
           <div class="warning-tile"><div class="warning-text">Loading…</div></div>
         </div>
       </article>
 
       <article class="panel">
-        <div class="title">MTR</div>
+        <div class="title">MTR live</div>
         <div class="stack">
-          <div class="tag" id="mtrStatus">Loading MTR…</div>
-          <div class="note" id="mtrNote">Waiting for service status.</div>
-          <div class="row"><span>Next refresh</span><strong id="nextRefresh">--</strong></div>
+          <div class="tag" id="mtrStatus">Loading…</div>
+          <div class="note" id="mtrNote">Waiting for latest train data.</div>
+          <div class="row-line"><span>Next refresh</span><strong id="nextRefresh">--</strong></div>
         </div>
       </article>
 
       <article class="panel">
         <div class="title">Main roads</div>
         <div class="stack">
-          <div class="row"><span>Cross-harbour</span><strong id="road1">--</strong></div>
-          <div class="row"><span>Island / Kowloon</span><strong id="road2">--</strong></div>
-          <div class="row"><span>New Territories</span><strong id="road3">--</strong></div>
-          <div class="note" id="roadNote">Open the live traffic source on tap if you need detail.</div>
+          <div class="row-line"><span>Cross-harbour</span><strong id="road1">--</strong></div>
+          <div class="row-line"><span>Island / Kowloon</span><strong id="road2">--</strong></div>
+          <div class="row-line"><span>New Territories</span><strong id="road3">--</strong></div>
+          <div class="note" id="roadNote">Using TD open data speed categories.</div>
         </div>
       </article>
     </section>
 
-    <section class="bottom">
+    <section class="row row-bottom">
       <article class="panel">
         <div class="title">Today</div>
         <div class="stack">
-          <div class="row"><span>Forecast</span><strong id="forecastShort">--</strong></div>
-          <div class="row"><span>Tips</span><strong id="tipsCount">--</strong></div>
-          <div class="row"><span>Week</span><strong id="weekNumber">--</strong></div>
-          <div class="row"><span>Day no.</span><strong id="dayOfYear">--</strong></div>
+          <div class="row-line"><span>Forecast</span><strong id="forecastShort">--</strong></div>
+          <div class="row-line"><span>Tips</span><strong id="tipsCount">--</strong></div>
+          <div class="row-line"><span>Week</span><strong id="weekNumber">--</strong></div>
+          <div class="row-line"><span>Day no.</span><strong id="dayOfYear">--</strong></div>
         </div>
       </article>
 
@@ -308,7 +224,7 @@
     </section>
   </div>
 
-  <div class="footer">HKO + MTR + TD sources</div>
+  <div class="footer">HKO · MTR · TD open data</div>
 
   <script>
     const HKT_TIME = new Intl.DateTimeFormat('en-GB', {
@@ -322,33 +238,26 @@
     });
 
     const HKO_WARNING_IMAGES = {
-      'THUNDERSTORM': 'https://www.hko.gov.hk/images/HKOWxIconOutline/pic50.png',
-      'WTS': 'https://www.hko.gov.hk/images/HKOWxIconOutline/pic50.png',
-      'WFIREY': 'https://www.hko.gov.hk/images/HKOWxIconOutline/pic52.png',
-      'WFIRER': 'https://www.hko.gov.hk/images/HKOWxIconOutline/pic53.png',
-      'WCOLD': 'https://www.hko.gov.hk/images/HKOWxIconOutline/pic91.png',
-      'WHOT': 'https://www.hko.gov.hk/images/HKOWxIconOutline/pic90.png',
-      'WMSGNL': 'https://www.hko.gov.hk/images/HKOWxIconOutline/pic54.png',
-      'LANDSLIP': 'https://www.hko.gov.hk/images/HKOWxIconOutline/pic55.png',
-      'FROST': 'https://www.hko.gov.hk/images/HKOWxIconOutline/pic56.png',
-      'TSUNAMI': 'https://www.hko.gov.hk/images/HKOWxIconOutline/pic57.png',
-      'WFNTSA': 'https://www.hko.gov.hk/images/HKOWxIconOutline/pic51.png',
-      'WTCPRE8': 'https://www.hko.gov.hk/images/HKOWxIconOutline/pic61.png',
-      'WTCPRE8_NW': 'https://www.hko.gov.hk/images/HKOWxIconOutline/pic61.png',
-      'WTCPRE8_NE': 'https://www.hko.gov.hk/images/HKOWxIconOutline/pic61.png',
-      'WTCPRE8_SE': 'https://www.hko.gov.hk/images/HKOWxIconOutline/pic61.png',
-      'WTCPRE8_SW': 'https://www.hko.gov.hk/images/HKOWxIconOutline/pic61.png',
-      'TC1': 'https://www.hko.gov.hk/images/HKOWxIconOutline/pic60.png',
-      'TC3': 'https://www.hko.gov.hk/images/HKOWxIconOutline/pic61.png',
-      'TC8NE': 'https://www.hko.gov.hk/images/HKOWxIconOutline/pic62.png',
-      'TC8NW': 'https://www.hko.gov.hk/images/HKOWxIconOutline/pic63.png',
-      'TC8SE': 'https://www.hko.gov.hk/images/HKOWxIconOutline/pic64.png',
-      'TC8SW': 'https://www.hko.gov.hk/images/HKOWxIconOutline/pic65.png',
-      'TC9': 'https://www.hko.gov.hk/images/HKOWxIconOutline/pic66.png',
-      'TC10': 'https://www.hko.gov.hk/images/HKOWxIconOutline/pic67.png',
-      'WRAINA': 'https://www.hko.gov.hk/images/HKOWxIconOutline/pic68.png',
-      'WRAINR': 'https://www.hko.gov.hk/images/HKOWxIconOutline/pic69.png',
-      'WRAINB': 'https://www.hko.gov.hk/images/HKOWxIconOutline/pic70.png'
+      'TC1': 'https://www.hko.gov.hk/common/images/wxicons/WTCS1.png',
+      'TC3': 'https://www.hko.gov.hk/common/images/wxicons/WTCS3.png',
+      'TC8NE': 'https://www.hko.gov.hk/common/images/wxicons/WTCS8_NE.png',
+      'TC8NW': 'https://www.hko.gov.hk/common/images/wxicons/WTCS8_NW.png',
+      'TC8SE': 'https://www.hko.gov.hk/common/images/wxicons/WTCS8_SE.png',
+      'TC8SW': 'https://www.hko.gov.hk/common/images/wxicons/WTCS8_SW.png',
+      'TC9': 'https://www.hko.gov.hk/common/images/wxicons/WTCS9.png',
+      'TC10': 'https://www.hko.gov.hk/common/images/wxicons/WTCS10.png',
+      'WRAINA': 'https://www.hko.gov.hk/common/images/wxicons/WRAINA.png',
+      'WRAINR': 'https://www.hko.gov.hk/common/images/wxicons/WRAINR.png',
+      'WRAINB': 'https://www.hko.gov.hk/common/images/wxicons/WRAINB.png',
+      'WMSGNL': 'https://www.hko.gov.hk/common/images/wxicons/WMSGNL.png',
+      'THUNDERSTORM': 'https://www.hko.gov.hk/common/images/wxicons/WTS.png',
+      'LANDSLIP': 'https://www.hko.gov.hk/common/images/wxicons/WLANDSLIP.png',
+      'WFIREY': 'https://www.hko.gov.hk/common/images/wxicons/WFIREY.png',
+      'WFIRER': 'https://www.hko.gov.hk/common/images/wxicons/WFIRER.png',
+      'WCOLD': 'https://www.hko.gov.hk/common/images/wxicons/WCOLD.png',
+      'WHOT': 'https://www.hko.gov.hk/common/images/wxicons/WHOT.png',
+      'TSUNAMI': 'https://www.hko.gov.hk/common/images/wxicons/WTSUNAMI.png',
+      'WFNTSA': 'https://www.hko.gov.hk/common/images/wxicons/WFNTSA.png'
     };
 
     function updateClock() {
@@ -414,15 +323,15 @@
       if (name.includes('cold')) return HKO_WARNING_IMAGES.WCOLD;
       if (name.includes('very hot')) return HKO_WARNING_IMAGES.WHOT;
       if (name.includes('landslip')) return HKO_WARNING_IMAGES.LANDSLIP;
-      if (name.includes('frost')) return HKO_WARNING_IMAGES.FROST;
       if (name.includes('fire danger')) return name.includes('red') ? HKO_WARNING_IMAGES.WFIRER : HKO_WARNING_IMAGES.WFIREY;
       if (name.includes('monsoon')) return HKO_WARNING_IMAGES.WMSGNL;
       if (name.includes('flooding')) return HKO_WARNING_IMAGES.WFNTSA;
+      if (name.includes('tsunami')) return HKO_WARNING_IMAGES.TSUNAMI;
       if (name.includes('standby signal no. 1')) return HKO_WARNING_IMAGES.TC1;
       if (name.includes('strong wind signal no. 3')) return HKO_WARNING_IMAGES.TC3;
       if (name.includes('hurricane signal no. 10')) return HKO_WARNING_IMAGES.TC10;
       if (name.includes('increasing gale or storm signal no. 9')) return HKO_WARNING_IMAGES.TC9;
-      return 'https://www.hko.gov.hk/images/HKOWxIconOutline/pic50.png';
+      return HKO_WARNING_IMAGES.THUNDERSTORM;
     }
 
     async function loadSun() {
@@ -461,11 +370,11 @@
       const entries = Object.values(warnsum || {});
       const warningWrap = document.getElementById('warningWrap');
       if (!entries.length) {
-        warningWrap.innerHTML = `<div class="warning-tile"><img src="https://www.hko.gov.hk/images/HKOWxIconOutline/pic48.png" alt="No warning" width="36" height="36"><div class="warning-text">No warning</div></div>`;
+        warningWrap.innerHTML = `<div class="warning-tile"><img src="https://www.hko.gov.hk/common/images/wxicons/NOWARNING.png" alt="No warning" width="30" height="30"><div class="warning-text">No warning</div></div>`;
       } else {
         warningWrap.innerHTML = entries.slice(0, 8).map(item => `
           <div class="warning-tile" title="${item.name || item.code}">
-            <img src="${pickHkoIcon(item)}" alt="${item.name || item.code}" width="36" height="36" loading="lazy">
+            <img src="${pickHkoIcon(item)}" alt="${item.name || item.code}" width="30" height="30" loading="lazy">
             <div class="warning-text">${item.name || item.code}</div>
           </div>
         `).join('');
@@ -473,10 +382,10 @@
       document.getElementById('warningCount').textContent = 'Warnings: ' + entries.length;
 
       const forecastText = (flw.forecastDesc || '').trim() || (flw.outlook || '').trim() || '--';
-      document.getElementById('forecastShort').textContent = forecastText.slice(0, 24) + (forecastText.length > 24 ? '…' : '');
+      document.getElementById('forecastShort').textContent = forecastText.slice(0, 26) + (forecastText.length > 26 ? '…' : '');
       const tips = Array.isArray(swt.swt) ? swt.swt : [];
       document.getElementById('tipsCount').textContent = String(tips.length);
-      document.getElementById('specialTips').textContent = tips.length ? tips.map(t => t.desc).join(' · ').slice(0, 180) : 'No special weather tips right now.';
+      document.getElementById('specialTips').textContent = tips.length ? tips.map(t => t.desc).join(' · ').slice(0, 160) : 'No special weather tips right now.';
 
       const warningNames = entries.map(x => x.name || '').join(' ').toLowerCase();
       const rainRisk = /rainstorm|thunderstorm|flood|monsoon/.test(warningNames) || (rainfall && Number(rainfall.max) > 0);
@@ -486,23 +395,52 @@
       document.getElementById('heatCue').textContent = 'Condition: ' + (hotRisk ? 'Hot' : coldRisk ? 'Cold' : 'Normal');
     }
 
-    async function loadTransport() {
-      document.getElementById('mtrStatus').textContent = 'MTR: Open traffic news';
-      document.getElementById('mtrNote').textContent = 'MTR provides real-time service status with green, yellow and red indicators in its traffic news service.';
-      document.getElementById('road1').textContent = 'Use live TD map';
-      document.getElementById('road2').textContent = 'Check speed map';
-      document.getElementById('road3').textContent = 'Open CCTV / route';
-      document.getElementById('roadNote').textContent = 'Transport Department updates strategic and major road traffic data every 1 to 2 minutes.';
+    async function loadMtr() {
+      try {
+        const data = await getJson('https://rt.data.gov.hk/v1/transport/mtr/getSchedule.php?line=TWL&sta=TSW');
+        const route = Object.values(data.data || {})[0] || {};
+        const destKey = Object.keys(route)[0];
+        const trains = route[destKey] || [];
+        if (!trains.length) {
+          document.getElementById('mtrStatus').textContent = 'MTR: No trains';
+          document.getElementById('mtrNote').textContent = 'No live train records returned for this station.';
+          return;
+        }
+        const first = trains[0];
+        document.getElementById('mtrStatus').textContent = `Next train ${first.ttnt || first.time}`;
+        document.getElementById('mtrNote').textContent = `Line ${data.sys || 'TWL'} · dest ${first.dest || destKey}`;
+      } catch (e) {
+        document.getElementById('mtrStatus').textContent = 'MTR: Error';
+        document.getElementById('mtrNote').textContent = 'Live MTR API could not be loaded.';
+      }
+    }
+
+    async function loadRoads() {
+      try {
+        const data = await getJson('https://traffic.data.gov.hk/traffic-speed-api/traffic-speed');
+        const items = Array.isArray(data.traffic_speed) ? data.traffic_speed : [];
+        const crossHarbour = items.find(x => /cross harbour|harbour crossing/i.test(x.location || ''));
+        const islKln = items.find(x => /island|kowloon/i.test(x.location || ''));
+        const nt = items.find(x => /new territories/i.test(x.location || ''));
+        document.getElementById('road1').textContent = crossHarbour ? `${crossHarbour.speed || '--'} km/h` : 'n/a';
+        document.getElementById('road2').textContent = islKln ? `${islKln.speed || '--'} km/h` : 'n/a';
+        document.getElementById('road3').textContent = nt ? `${nt.speed || '--'} km/h` : 'n/a';
+        document.getElementById('roadNote').textContent = 'TD speed data updated every few minutes.';
+      } catch (e) {
+        document.getElementById('road1').textContent = 'error';
+        document.getElementById('road2').textContent = 'error';
+        document.getElementById('road3').textContent = 'error';
+        document.getElementById('roadNote').textContent = 'Road API could not be loaded.';
+      }
     }
 
     async function refreshAll() {
       try {
-        await Promise.all([loadSun(), loadWeather(), loadTransport()]);
+        await Promise.all([loadSun(), loadWeather(), loadMtr(), loadRoads()]);
         const next = new Date(Date.now() + 5 * 60 * 1000);
         document.getElementById('nextRefresh').textContent = HKT_TIME.format(next).slice(0,5);
-      } catch (err) {
-        console.error(err);
-        document.getElementById('mtrNote').textContent = 'Some live data could not be loaded.';
+      } catch (e) {
+        console.error(e);
       }
     }
 
